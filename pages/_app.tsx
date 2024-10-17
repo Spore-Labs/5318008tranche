@@ -25,8 +25,8 @@ const config = createConfig({
 });
 
 const { connectors } = getDefaultWallets({
-  appName: 'Tranche DApp',
-  projectId: 'YOUR_PROJECT_ID', // Get this from WalletConnect
+  appName: '5318008 Tranches',
+  projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID as string,
 });
 
 function MyApp({ Component, pageProps }: AppProps) {
