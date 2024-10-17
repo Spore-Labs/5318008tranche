@@ -1,71 +1,67 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useAccount, useReadContract, useChainId, useReadContracts, useWriteContract, useWaitForTransactionReceipt, useConfig, useBlockNumber } from 'wagmi';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
-import TrancheButton from '../components/TrancheButton';
-import contractABI from '../contractABI.json';
-import { Abi } from 'viem';
-import SaleUI from './SaleUI';
-import { toast } from 'react-hot-toast';
+'use client'
 
+import React, { useState, useEffect, useCallback } from 'react'
+import { useAccount, useReadContract, useChainId, useReadContracts, useWriteContract, useWaitForTransactionReceipt, useConfig, useBlockNumber } from 'wagmi'
+import TrancheButton from './components/TrancheButton'
+import contractABI from '../contractABI.json'
+import { Abi } from 'viem'
+import SaleUI from './components/SaleUI'
+import { toast } from 'react-hot-toast'
+import { contractAddresses } from '../config'
 
-const contractAddresses = {
-  mainnet: '0xbB493890c5a30a047576f9114081Cb65038c651c',
-  sepolia: '0xf585a2e915998179EfC125832ed98eCcf87dF2f9',
-};
-
-const typedContractABI = contractABI as Abi;
+const typedContractABI = contractABI as Abi
 
 type PriceDifferenceContract = {
-  address: `0x${string}`;
-  abi: typeof typedContractABI;
-  functionName: 'getCurrentPriceDifferencePercent';
-  args: [bigint];
-};
+  address: `0x${string}`
+  abi: typeof typedContractABI
+  functionName: 'getCurrentPriceDifferencePercent'
+  args: [bigint]
+}
 
 type TrancheSupplyContract = {
-  address: `0x${string}`;
-  abi: typeof typedContractABI;
-  functionName: 'trancheSupplyBaseUnits';
-  args: [bigint];
-};
+  address: `0x${string}`
+  abi: typeof typedContractABI
+  functionName: 'trancheSupplyBaseUnits'
+  args: [bigint]
+}
 
 type TrancheSoldContract = {
-  address: `0x${string}`;
-  abi: typeof typedContractABI;
-  functionName: 'trancheSoldBaseUnits';
-  args: [bigint];
-};
+  address: `0x${string}`
+  abi: typeof typedContractABI
+  functionName: 'trancheSoldBaseUnits'
+  args: [bigint]
+}
 
 export default function Home() {
-  const [isClient, setIsClient] = useState(false);
-  const config = useConfig();
-  const { isConnected, address: account } = useAccount();
-  const chainId = useChainId();
-  const [availableTranches, setAvailableTranches] = useState<boolean[]>([]);
-  const [trancheSupply, setTrancheSupply] = useState<bigint[]>([]);
-  const [trancheSold, setTrancheSold] = useState<bigint[]>([]);
-  const [priceDifference, setPriceDifference] = useState<bigint[] | null>(null);
-  const [selectedTrancheIndex, setSelectedTrancheIndex] = useState<number | null>(null);
-  const [selectedMaxPriceDifference, setSelectedMaxPriceDifference] = useState<number | null>(null);
+  const [isClient, setIsClient] = useState(false)
+  const config = useConfig()
+  const { isConnected, address: account } = useAccount()
+  const chainId = useChainId()
+  const [availableTranches, setAvailableTranches] = useState<boolean[]>([])
+  const [trancheSupply, setTrancheSupply] = useState<bigint[]>([])
+  const [trancheSold, setTrancheSold] = useState<bigint[]>([])
+  const [priceDifference, setPriceDifference] = useState<bigint[] | null>(null)
+  const [selectedTrancheIndex, setSelectedTrancheIndex] = useState<number | null>(null)
+  const [selectedMaxPriceDifference, setSelectedMaxPriceDifference] = useState<number | null>(null)
 
   useEffect(() => {
-    setIsClient(true);
-  }, []);
+    setIsClient(true)
+  }, [])
 
   const getContractAddress = (): `0x${string}` | null => {
-    if (chainId === 1) return contractAddresses.mainnet as `0x${string}`;
-    if (chainId === 11155111) return contractAddresses.sepolia as `0x${string}`;
-    return null;
-  };
+    if (chainId === 1) return contractAddresses.mainnet as `0x${string}`
+    if (chainId === 11155111) return contractAddresses.sepolia as `0x${string}`
+    return null
+  }
 
-  const contractAddress = getContractAddress();
+  const contractAddress = getContractAddress()
 
   const { data: tranchesData } = useReadContract({
     address: contractAddress as `0x${string}`,
     abi: contractABI,
     functionName: 'getAvailableTranches',
-  });
-  
+  })
+
   // @ts-expect-error Type instantiation is excessively deep and possibly infinite.
   const supplyResults = useReadContracts<TrancheSupplyContract[]>({
     contracts: availableTranches.map((_, index) => ({
@@ -74,7 +70,7 @@ export default function Home() {
       functionName: 'trancheSupplyBaseUnits',
       args: [BigInt(index)],
     })),
-  });
+  })
 
   const soldResults = useReadContracts<TrancheSoldContract[]>({
     contracts: availableTranches.map((_, index) => ({
@@ -83,7 +79,7 @@ export default function Home() {
       functionName: 'trancheSoldBaseUnits',
       args: [BigInt(index)],
     })),
-  });
+  })
 
   const priceDifferenceResults = useReadContracts<PriceDifferenceContract[]>({
     contracts: availableTranches.map((_, index) => ({
@@ -92,73 +88,73 @@ export default function Home() {
       functionName: 'getCurrentPriceDifferencePercent',
       args: [BigInt(index)],
     })),
-  });
+  })
 
   useEffect(() => {
     if (tranchesData) {
-      setAvailableTranches(tranchesData as boolean[]);
+      setAvailableTranches(tranchesData as boolean[])
     }
-  }, [tranchesData]);
+  }, [tranchesData])
 
   useEffect(() => {
     if (priceDifferenceResults.data) {
-      setPriceDifference(priceDifferenceResults.data.map(result => result.result as bigint));
+      setPriceDifference(priceDifferenceResults.data.map(result => result.result as bigint))
     }
-  }, [priceDifferenceResults.data]);
+  }, [priceDifferenceResults.data])
 
   useEffect(() => {
     if (contractAddress && supplyResults.data && soldResults.data) {
-      setTrancheSupply(supplyResults.data.map(result => (result.result as bigint) || BigInt(0)));
-      setTrancheSold(soldResults.data.map(result => (result.result as bigint) || BigInt(0)));
+      setTrancheSupply(supplyResults.data.map(result => (result.result as bigint) || BigInt(0)))
+      setTrancheSold(soldResults.data.map(result => (result.result as bigint) || BigInt(0)))
     }
-  }, [contractAddress, supplyResults.data, soldResults.data]);
+  }, [contractAddress, supplyResults.data, soldResults.data])
 
   const memoizedOnRef = useCallback((ref: any) => {
     if (ref) {
       return (trancheIndex: number, maxPriceDifference: number) => {
-        ref.updateTrancheIndex(trancheIndex);
-        ref.updateMaxPriceDifference(maxPriceDifference);
-      };
+        ref.updateTrancheIndex(trancheIndex)
+        ref.updateMaxPriceDifference(maxPriceDifference)
+      }
     }
-    return null;
-  }, []);
+    return null
+  }, [])
 
-  const { writeContract, data: rebaseHash } = useWriteContract();
+  const { writeContract, data: rebaseHash } = useWriteContract()
 
   const { isLoading: isRebaseConfirming, isSuccess: isRebaseConfirmed } =
     useWaitForTransactionReceipt({
       hash: rebaseHash,
-    });
+    })
 
-  const { data: blockNumber } = useBlockNumber();
-  const [lastRebaseBlock, setLastRebaseBlock] = useState<bigint | null>(null);
-  const [canRebase, setCanRebase] = useState<boolean>(false);
+  const { data: blockNumber } = useBlockNumber()
+  const [lastRebaseBlock, setLastRebaseBlock] = useState<bigint | null>(null)
+  const [canRebase, setCanRebase] = useState<boolean>(false)
 
   const { data: lastRebaseBlockData } = useReadContract({
     address: contractAddress as `0x${string}`,
     abi: typedContractABI,
     functionName: 'lastRebaseBlock',
-  });
+  })
 
   useEffect(() => {
     if (lastRebaseBlockData) {
-      setLastRebaseBlock(lastRebaseBlockData as bigint);
+      setLastRebaseBlock(lastRebaseBlockData as bigint)
     }
-  }, [lastRebaseBlockData]);
+  }, [lastRebaseBlockData])
 
   useEffect(() => {
     if (blockNumber && lastRebaseBlock) {
-      setCanRebase(blockNumber > (lastRebaseBlock + BigInt(300)));
+      setCanRebase(blockNumber > (lastRebaseBlock + BigInt(300)))
     }
-  }, [blockNumber, lastRebaseBlock]);
+  }, [blockNumber, lastRebaseBlock])
 
   const handleRebase = async () => {
-    if (!isConnected || !contractAddress || !account || !canRebase) return;
+    if (!isConnected || !contractAddress || !account || !canRebase) return
 
-    const chain = config.chains.find(c => c.id === chainId);
+    const chain = config.chains.find(c => c.id === chainId)
     if (!chain) {
-      toast.error('Unsupported chain');
-      return;
+      toast.error('Unsupported chain')
+      return
     }
 
     try {
@@ -169,24 +165,26 @@ export default function Home() {
         args: [account],
         chain,
         account,
-      });
-      
-      toast.success('Rebase transaction sent. Waiting for confirmation...');
+      })
+
+      toast.success('Rebase transaction sent. Waiting for confirmation...')
     } catch (error) {
-      console.error('Error calling rebase:', error);
-      toast.error('Failed to rebase. Please try again.');
+      console.error('Error calling rebase:', error)
+      toast.error('Failed to rebase. Please try again.')
     }
-  };
+  }
 
   if (!isClient) {
-    return null;
+    return null
   }
+
+  
 
   return (
     <div className="container mx-auto p-4 relative">
       <div className="flex flex-col items-center justify-center mb-4">
         <h1 className="text-3xl font-bold mb-4">Purchase BOOB Tranches</h1>
-        <ConnectButton />
+        <w3m-button />
       </div>
       <div className="flex justify-between items-center mb-4">
         <button
@@ -216,20 +214,20 @@ export default function Home() {
                 trancheIndex={index}
                 isAvailable={isAvailable}
                 onBuy={() => {
-                  setSelectedTrancheIndex(index);
-                  setSelectedMaxPriceDifference(priceDifference && priceDifference[index] ? Number(priceDifference[index]) + 500 : 500);
-                  const updateSaleUI = memoizedOnRef(null);
+                  setSelectedTrancheIndex(index)
+                  setSelectedMaxPriceDifference(priceDifference && priceDifference[index] ? Number(priceDifference[index]) + 500 : 500)
+                  const updateSaleUI = memoizedOnRef(null)
                   if (updateSaleUI) {
-                    updateSaleUI(index, priceDifference && priceDifference[index] ? Number(priceDifference[index]) + 500 : 500);
+                    updateSaleUI(index, priceDifference && priceDifference[index] ? Number(priceDifference[index]) + 500 : 500)
                   }
-                }} 
+                }}
                 supply={trancheSupply[index]}
                 sold={trancheSold[index]}
                 priceDifference={priceDifference && priceDifference[index] ? priceDifference[index] : BigInt(0)}
               />
             ))}
           </div>
-          <SaleUI 
+          <SaleUI
             contractAddress={contractAddress}
             selectedTrancheIndex={selectedTrancheIndex}
             selectedMaxPriceDifference={selectedMaxPriceDifference}
@@ -238,5 +236,5 @@ export default function Home() {
         </div>
       )}
     </div>
-  );
+  )
 }

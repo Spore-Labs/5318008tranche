@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { useAccount, useWriteContract, useWaitForTransactionReceipt, useChainId, useConfig } from 'wagmi';
-import { toast } from 'react-hot-toast';
-import { TransactionReceipt } from 'viem';
-import { CopyToClipboard } from "react-copy-to-clipboard";
+'use client'
+
+import React, { useState, useEffect } from 'react'
+import { useAccount, useWriteContract, useWaitForTransactionReceipt, useChainId, useConfig } from 'wagmi'
+import { toast } from 'react-hot-toast'
+import { TransactionReceipt } from 'viem'
+import { CopyToClipboard } from "react-copy-to-clipboard"
 
 const trancheBuyABI = [
   {
@@ -15,29 +17,29 @@ const trancheBuyABI = [
     stateMutability: 'payable',
     type: 'function'
   }
-];
+]
 
 interface SaleUIProps {
-  contractAddress: `0x${string}`;
-  selectedTrancheIndex: number | null;
-  selectedMaxPriceDifference: number | null;
-  onRef: (ref: { updateTrancheIndex: (index: number) => void, updateMaxPriceDifference: (diff: number) => void } | null) => void;
+  contractAddress: `0x${string}`
+  selectedTrancheIndex: number | null
+  selectedMaxPriceDifference: number | null
+  onRef: (ref: { updateTrancheIndex: (index: number) => void, updateMaxPriceDifference: (diff: number) => void } | null) => void
 }
 
 const SaleUI: React.FC<SaleUIProps> = ({ contractAddress, selectedTrancheIndex, selectedMaxPriceDifference, onRef }) => {
-  const [trancheIndex, setTrancheIndex] = useState<number>(0);
-  const [maxPriceDifference, setMaxPriceDifference] = useState<number>(200);
-  const [amount, setAmount] = useState<string>('0.1');
-  const { isConnected, address: account } = useAccount();
-  const chainId = useChainId();
-  const config = useConfig();
+  const [trancheIndex, setTrancheIndex] = useState<number>(0)
+  const [maxPriceDifference, setMaxPriceDifference] = useState<number>(200)
+  const [amount, setAmount] = useState<string>('0.1')
+  const { isConnected, address: account } = useAccount()
+  const chainId = useChainId()
+  const config = useConfig()
 
-  const { writeContract, data: hash, isPending } = useWriteContract();
+  const { writeContract, data: hash, isPending } = useWriteContract()
 
   const { isLoading: isConfirming, isSuccess: isConfirmed, data: txResult } =
     useWaitForTransactionReceipt({
       hash,
-    });
+    })
 
   // Ensure txResult is a TransactionReceipt
   const transactionReceipt: TransactionReceipt | undefined = txResult
@@ -57,38 +59,38 @@ const SaleUI: React.FC<SaleUIProps> = ({ contractAddress, selectedTrancheIndex, 
         transactionIndex: txResult.transactionIndex,
         type: txResult.type,
       }
-    : undefined;
+    : undefined
 
   useEffect(() => {
     if (selectedTrancheIndex !== null) {
-      setTrancheIndex(selectedTrancheIndex);
+      setTrancheIndex(selectedTrancheIndex)
     }
-  }, [selectedTrancheIndex]);
+  }, [selectedTrancheIndex])
 
   useEffect(() => {
     if (selectedMaxPriceDifference !== null) {
-      setMaxPriceDifference(selectedMaxPriceDifference);
+      setMaxPriceDifference(selectedMaxPriceDifference)
     }
-  }, [selectedMaxPriceDifference]);
+  }, [selectedMaxPriceDifference])
 
   useEffect(() => {
     onRef({
       updateTrancheIndex: setTrancheIndex,
       updateMaxPriceDifference: setMaxPriceDifference,
-    });
-    return () => onRef(null);
-  }, [onRef]);
+    })
+    return () => onRef(null)
+  }, [onRef])
 
   const handleBuyTranche = async () => {
     if (!isConnected) {
-      toast.error('Please connect your wallet first');
-      return;
+      toast.error('Please connect your wallet first')
+      return
     }
 
-    const chain = config.chains.find(c => c.id === chainId);
+    const chain = config.chains.find(c => c.id === chainId)
     if (!chain) {
-      toast.error('Unsupported chain');
-      return;
+      toast.error('Unsupported chain')
+      return
     }
 
     try {
@@ -100,12 +102,12 @@ const SaleUI: React.FC<SaleUIProps> = ({ contractAddress, selectedTrancheIndex, 
         value: BigInt(parseFloat(amount) * 1e18),
         account: account as `0x${string}`,
         chain,
-      });
+      })
     } catch (error) {
-      console.error('Error buying tranche:', error);
-      toast.error('Failed to buy tranche. Please try again.');
+      console.error('Error buying tranche:', error)
+      toast.error('Failed to buy tranche. Please try again.')
     }
-  };
+  }
 
   return (
     <div className="py-5 space-y-4">
@@ -170,56 +172,8 @@ const SaleUI: React.FC<SaleUIProps> = ({ contractAddress, selectedTrancheIndex, 
           </span>
         )}
       </div>
-      {transactionReceipt && <TxReceipt txResult={transactionReceipt} />}
     </div>
-  );
-};
-
-interface TxReceiptProps {
-  txResult: TransactionReceipt | undefined;
+  )
 }
 
-const TxReceipt: React.FC<TxReceiptProps> = ({ txResult }) => {
-  const [copied, setCopied] = useState(false);
-
-  if (!txResult) return null;
-
-  const displayTxResult = (result: TransactionReceipt) => {
-    return JSON.stringify(result, (key, value) =>
-      typeof value === 'bigint' ? value.toString() : value
-    , 2);
-  };
-
-  return (
-    <div className="bg-gray-100 p-4 rounded-lg mt-4">
-      <h3 className="text-lg font-semibold mb-2">Transaction Receipt</h3>
-      <div className="flex items-center mb-2">
-        <span className="mr-2">Transaction Hash:</span>
-        <span className="font-mono">{txResult.transactionHash}</span>
-        <CopyToClipboard text={txResult.transactionHash} onCopy={() => setCopied(true)}>
-          <button className="ml-2 text-blue-500 hover:text-blue-700">
-            {copied ? "Copied!" : "Copy"}
-          </button>
-        </CopyToClipboard>
-      </div>
-      <div className="mb-2">
-        <span className="mr-2">Block Number:</span>
-        <span className="font-mono">{txResult.blockNumber.toString()}</span>
-      </div>
-      <div className="mb-2">
-        <span className="mr-2">Status:</span>
-        <span className={`font-semibold ${txResult.status === "success" ? 'text-green-500' : 'text-red-500'}`}>
-          {txResult.status === "success" ? 'Success' : 'Failed'}
-        </span>
-      </div>
-      <details>
-        <summary className="cursor-pointer text-blue-500 hover:text-blue-700">View Full Receipt</summary>
-        <pre className="mt-2 p-2 bg-gray-200 rounded overflow-x-auto">
-          {displayTxResult(txResult)}
-        </pre>
-      </details>
-    </div>
-  );
-};
-
-export default SaleUI;
+export default SaleUI
