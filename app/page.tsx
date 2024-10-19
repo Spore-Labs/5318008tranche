@@ -6,8 +6,7 @@ import TrancheButton from './components/TrancheButton'
 import contractABI from '../contractABI.json'
 import { Abi } from 'viem'
 import SaleUI from './components/SaleUI'
-import { toast } from 'react-hot-toast'
-import { contractAddresses } from '../config'
+import { getContractAddress } from './utils/contractUtils'
 
 const typedContractABI = contractABI as Abi
 
@@ -48,13 +47,7 @@ export default function Home() {
     setIsClient(true)
   }, [])
 
-  const getContractAddress = (): `0x${string}` | null => {
-    if (chainId === 1) return contractAddresses.mainnet as `0x${string}`
-    if (chainId === 11155111) return contractAddresses.sepolia as `0x${string}`
-    return null
-  }
-
-  const contractAddress = getContractAddress()
+  const contractAddress = getContractAddress(chainId)
 
   const { data: tranchesData } = useReadContract({
     address: contractAddress as `0x${string}`,
@@ -148,32 +141,6 @@ export default function Home() {
     }
   }, [blockNumber, lastRebaseBlock])
 
-  const handleRebase = async () => {
-    if (!isConnected || !contractAddress || !account || !canRebase) return
-
-    const chain = config.chains.find(c => c.id === chainId)
-    if (!chain) {
-      toast.error('Unsupported chain')
-      return
-    }
-
-    try {
-      await writeContract({
-        address: contractAddress,
-        abi: typedContractABI,
-        functionName: 'rebase',
-        args: [account],
-        chain,
-        account,
-      })
-
-      toast.success('Rebase transaction sent. Waiting for confirmation...')
-    } catch (error) {
-      console.error('Error calling rebase:', error)
-      toast.error('Failed to rebase. Please try again.')
-    }
-  }
-
   if (!isClient) {
     return null
   }
@@ -181,33 +148,16 @@ export default function Home() {
   
 
   return (
-    <div className="container mx-auto p-4 relative">
-      <div className="flex flex-col items-center justify-center mb-4">
-        <h1 className="text-3xl font-bold mb-4">Purchase BOOB Tranches</h1>
-        <w3m-button />
-      </div>
-      <div className="flex justify-between items-center mb-4">
-        <button
-          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-          onClick={handleRebase}
-          disabled={!isConnected || isRebaseConfirming || !canRebase}
-        >
-          {isRebaseConfirming ? 'Rebasing...' : canRebase ? 'Rebase' : 'Rebase Unavailable'}
-        </button>
-        {!canRebase && lastRebaseBlock && blockNumber && (
-          <div className="text-sm text-gray-600">
-            Rebase will be available in {300 - Number(blockNumber - lastRebaseBlock)} blocks
-          </div>
-        )}
-      </div>
+    <main className="container mx-auto p-4 bg-content-light dark:bg-content-dark text-text-light dark:text-text-dark">
       {isConnected && !contractAddress && (
-        <div className="mt-4 p-4 bg-yellow-100 text-yellow-700 rounded">
+        <div className="mt-4 p-4 bg-secondary-light dark:bg-secondary-dark text-text-light dark:text-text-dark rounded">
           Please switch to Mainnet or Sepolia network.
         </div>
       )}
       {isConnected && contractAddress && (
         <div className="mt-4 w-full">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mb-4">
+          <h2 className="text-2xl font-bold mb-4 text-primary-light dark:text-primary-dark">Available Tranches</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-8">
             {availableTranches.slice(0, 12).map((isAvailable, index) => (
               <TrancheButton
                 key={index}
@@ -226,7 +176,7 @@ export default function Home() {
                 priceDifference={priceDifference && priceDifference[index] ? priceDifference[index] : BigInt(0)}
               />
             ))}
-          </div>
+          </div >
           <SaleUI
             contractAddress={contractAddress}
             selectedTrancheIndex={selectedTrancheIndex}
@@ -235,6 +185,6 @@ export default function Home() {
           />
         </div>
       )}
-    </div>
+    </main>
   )
 }

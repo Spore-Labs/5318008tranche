@@ -6,6 +6,12 @@ import { createAppKit } from '@reown/appkit/react'
 import { mainnet, arbitrum } from '@reown/appkit/networks'
 import React, { type ReactNode } from 'react'
 import { cookieToInitialState, WagmiProvider, type Config } from 'wagmi'
+import { useTheme } from 'next-themes'
+
+const getAccentColor = () => {
+  const { theme } = useTheme()
+  return theme === 'dark' ? '#e44e92' : '#a7488f'
+}
 
 // Set up queryClient
 const queryClient = new QueryClient()
@@ -30,7 +36,11 @@ const modal = createAppKit({
   defaultNetwork: mainnet,
   metadata: metadata,
   features: {
-    analytics: true // Optional - defaults to your Cloud configuration
+    analytics: true
+  },
+  themeMode: 'light', // You can change this to 'dark' if you prefer
+  themeVariables: {
+    '--w3m-accent': '#a7488f', // Your secondary color
   }
 })
 
