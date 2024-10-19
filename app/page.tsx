@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { useAccount, useReadContract, useChainId, useReadContracts, useWriteContract, useWaitForTransactionReceipt, useConfig, useBlockNumber } from 'wagmi'
+import { Abi } from 'viem'
+import { getContractAddress } from './utils/contractUtils'
+import SaleUI from './components/SaleUI'
+import TokenInfo from './components/TokenInfo'
 import TrancheButton from './components/TrancheButton'
 import contractABI from '../contractABI.json'
-import { Abi } from 'viem'
-import SaleUI from './components/SaleUI'
-import { getContractAddress } from './utils/contractUtils'
 
 const typedContractABI = contractABI as Abi
 
@@ -145,10 +146,9 @@ export default function Home() {
     return null
   }
 
-  
-
   return (
     <main className="container mx-auto p-4 bg-content-light dark:bg-content-dark text-text-light dark:text-text-dark">
+      <TokenInfo />
       {isConnected && !contractAddress && (
         <div className="mt-4 p-4 bg-secondary-light dark:bg-secondary-dark text-text-light dark:text-text-dark rounded">
           Please switch to Mainnet or Sepolia network.
@@ -156,7 +156,7 @@ export default function Home() {
       )}
       {isConnected && contractAddress && (
         <div className="mt-4 w-full">
-          <h2 className="text-2xl font-bold mb-4 text-primary-light dark:text-primary-dark">Available Tranches</h2>
+          <h2 className="text-2xl font-bold mb-4 text-text-light dark:text-text-dark">Available Tranches</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-8">
             {availableTranches.slice(0, 12).map((isAvailable, index) => (
               <TrancheButton
@@ -176,7 +176,7 @@ export default function Home() {
                 priceDifference={priceDifference && priceDifference[index] ? priceDifference[index] : BigInt(0)}
               />
             ))}
-          </div >
+          </div>
           <SaleUI
             contractAddress={contractAddress}
             selectedTrancheIndex={selectedTrancheIndex}

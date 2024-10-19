@@ -10,28 +10,28 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          light: '#2c1466',
-          dark: '#f4dad6',
+          light: '#6841c2',
+          dark: '#633dbd',
         },
         secondary: {
-          light: '#a7488f',
-          dark: '#e44e92',
+          light: '#ad79d1',
+          dark: '#612e85',
         },
         background: {
           light: '#f1a5c6',
           dark: '#2c1466',
         },
         text: {
-          light: '#2c1466',
-          dark: '#fbe9d5',
+          light: '#140a2e',
+          dark: '#dbd1f5',
         },
         accent: {
-          light: '#693c89',
-          dark: '#a7488f',
+          light: '#f7c0da',
+          dark: '#3f0822',
         },
         content: {
           light: '#fffbf8',
-          dark: '#1a0d3d',
+          dark: '#0D0D0D',
         },
       },
       boxShadow: {
@@ -59,10 +59,10 @@ module.exports = {
           padding: '0.5rem 1rem',
           borderRadius: '2rem',
           fontWeight: '600',
-          backgroundColor: '#2c1466',
+          backgroundColor: '#ad79d1',
           color: 'white',
           '&:hover': {
-            backgroundColor: '#693c89',
+            backgroundColor: '#6841c2',
           },
           '&:disabled': {
             backgroundColor: '#ccc',
@@ -73,10 +73,10 @@ module.exports = {
           padding: '0.5rem 1rem',
           borderRadius: '2rem',
           fontWeight: '600',
-          backgroundColor: '#a7488f',
+          backgroundColor: '#693c89',
           color: 'white',
           '&:hover': {
-            backgroundColor: '#693c89',
+            backgroundColor: '#ad79d1',
           },
           '&:disabled': {
             backgroundColor: '#ccc',

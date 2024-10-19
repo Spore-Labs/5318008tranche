@@ -141,7 +141,7 @@ const SaleUI: React.FC<SaleUIProps> = ({ contractAddress, selectedTrancheIndex, 
             />
           </div>
           <button
-            className={`btn-primary w-full mt-4 ${!isConnected || isPending || isConfirming ? 'opacity-50' : ''}`}
+            className={`btn-primary dark:btn-secondary w-full mt-4 ${!isConnected || isPending || isConfirming ? 'opacity-50' : ''}`}
             disabled={!isConnected || isPending || isConfirming}
             onClick={handleBuyTranche}
           >

@@ -22,7 +22,7 @@ const TrancheButton: React.FC<TrancheButtonProps> = ({
 
   return (
     <button
-      className={`btn-secondary p-4 ${!isAvailable || isSoldOut ? 'opacity-50' : ''} shadow-soft hover:shadow-md transition-shadow duration-300`}
+      className={`btn-primary dark:btn-secondary ${!isAvailable || isSoldOut ? 'opacity-50' : ''} shadow-soft hover:shadow-md transition-shadow duration-300`}
       onClick={onBuy}
       disabled={!isAvailable || isSoldOut}
     >
