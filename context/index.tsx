@@ -6,12 +6,6 @@ import { createAppKit } from '@reown/appkit/react'
 import { mainnet, arbitrum } from '@reown/appkit/networks'
 import React, { type ReactNode } from 'react'
 import { cookieToInitialState, WagmiProvider, type Config } from 'wagmi'
-import { useTheme } from 'next-themes'
-
-const getAccentColor = () => {
-  const { theme } = useTheme()
-  return theme === 'dark' ? '#e44e92' : '#a7488f'
-}
 
 // Set up queryClient
 const queryClient = new QueryClient()

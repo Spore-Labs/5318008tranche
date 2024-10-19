@@ -110,34 +110,34 @@ const SaleUI: React.FC<SaleUIProps> = ({ contractAddress, selectedTrancheIndex, 
 
   return (
     <div className={`mt-8 ${selectedTrancheIndex === null ? 'hidden' : ''}`}>
-      <div className="max-w-[250px] bg-background-light dark:bg-background-dark p-6 rounded-lg shadow-soft mx-auto border border-gray-300 rounded-lg p-6">
+      <div className="max-w-[250px] bg-background-light dark:bg-background-dark p-6 rounded-lg shadow-soft mx-auto border border-primary-light dark:border-primary-dark rounded-lg p-6">
         <h2 className="text-2xl font-bold mb-4 text-center">Buy Tranche</h2>
         <div className="flex flex-col space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Tranche Index</label>
+            <label className="block text-sm font-medium text-text-light dark:text-text-dark mb-1">Tranche Index</label>
             <input
               type="number"
               value={trancheIndex}
               onChange={(e) => setTrancheIndex(Number(e.target.value))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 border border-primary-light dark:border-primary-dark rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Max Price Difference (%)</label>
+            <label className="block text-sm font-medium text-text-light dark:text-text-dark mb-1">Max Price Difference (%)</label>
             <input
               type="number"
               value={maxPriceDifference}
               onChange={(e) => setMaxPriceDifference(Number(e.target.value))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 border border-primary-light dark:border-primary-dark rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Amount (ETH)</label>
+            <label className="block text-sm font-medium text-text-light dark:text-text-dark mb-1">Amount (ETH)</label>
             <input
               type="text"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 border border-primary-light dark:border-primary-dark rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
           <button
