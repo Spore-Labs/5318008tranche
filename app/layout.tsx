@@ -11,8 +11,8 @@ import { Providers } from './providers'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: '5318008 Tranches',
-  description: 'Buy $BOOB Tranches'
+  title: '5318008 Dashboard',
+  description: 'Dashboard for $BOOB Tranches'
 }
 
 export default async function RootLayout({
