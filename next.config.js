@@ -37,15 +37,15 @@ const nextConfig = {
               https://wallet.crypto.com https://web3.1inch.io https://mainnet.era.zksync.io/
               wss://*.uniswap.org wss://relay.walletconnect.com wss://relay.walletconnect.org
               wss://ws-us3.pusher.com/ wss://www.walletlink.org;
-              script-src 'self' 'unsafe-eval' 'unsafe-inline' https://app.uniswap.org;
+              script-src 'self' 'unsafe-eval' 'unsafe-inline' https://app.uniswap.org https://vercel.live;
               style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
               font-src 'self' data: https://fonts.gstatic.com;
               img-src 'self' data: blob: https:;
-              frame-src 'self' https://*.walletconnect.com https://*.walletconnect.org https://app.uniswap.org;
+              frame-src 'self' https://*.walletconnect.com https://*.walletconnect.org https://app.uniswap.org https://secure.walletconnect.org;
               object-src 'none';
               base-uri 'self';
               form-action 'self';
-              frame-ancestors 'none';
+              frame-ancestors 'self' http://localhost:* https://*.pages.dev https://*.ngrok-free.app https://secure-mobile.walletconnect.com https://secure-mobile.walletconnect.org;
               upgrade-insecure-requests;
             `.replace(/\s+/g, ' ').trim()
           },
