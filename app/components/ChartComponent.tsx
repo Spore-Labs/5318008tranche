@@ -2,16 +2,28 @@ import React, { useState, useMemo } from 'react';
 import { TokenData } from '../types';
 import CandlestickChart from './CandlestickChart';
 
+interface CandlestickData {
+  date: Date;
+  open: number;
+  close: number;
+  high: number;
+  low: number;
+}
+
 interface ChartProps {
   data: TokenData[];
   metric: keyof Omit<TokenData, 'timestamp'>;
 }
 
-const timeFrames = ['5m', '15m', '1h', '4h', '1d', '1w', '1M'];
+const timeFrames = ['15m', '1h', '4h', '1d', '1w', '1M'];
 
 const aggregateData = (data: TokenData[], timeFrame: string, metric: keyof Omit<TokenData, 'timestamp'>) => {
-  const msPerTimeFrame = {
-    '5m': 300000,
+  if (data.length === 0) {
+    console.warn('aggregateData: Input data is empty');
+    return [];
+  }
+
+  const msPerTimeFrame: { [key: string]: number } = {
     '15m': 900000,
     '1h': 3600000,
     '4h': 14400000,
@@ -20,26 +32,54 @@ const aggregateData = (data: TokenData[], timeFrame: string, metric: keyof Omit<
     '1M': 2592000000
   };
 
-  const groupedData = data.reduce((acc, d) => {
-    const date = new Date(d.timestamp);
-    const key = Math.floor(date.getTime() / msPerTimeFrame[timeFrame as keyof typeof msPerTimeFrame]) * msPerTimeFrame[timeFrame as keyof typeof msPerTimeFrame];
-    if (!acc[key]) {
-      acc[key] = [];
-    }
-    acc[key].push(d);
-    return acc;
-  }, {} as Record<number, TokenData[]>);
+  const interval = msPerTimeFrame[timeFrame] || 900000; // Default to 15m if timeFrame is not found
+  const endTime = Math.ceil(new Date(data[data.length - 1].timestamp).getTime() / interval) * interval;
+  const startTime = endTime - (interval * 120); // Only keep the latest 120 intervals
 
-  return Object.entries(groupedData).map(([timestamp, values]) => {
-    const metricValues = values.map(v => v[metric] as number);
-    return {
-      date: new Date(Number(timestamp)),
-      open: metricValues[0],
-      close: metricValues[metricValues.length - 1],
-      high: Math.max(...metricValues),
-      low: Math.min(...metricValues)
-    };
+  const groupedData: Record<number, TokenData[]> = {};
+  for (let i = startTime; i <= endTime; i += interval) {
+    groupedData[i] = [];
+  }
+
+  data.forEach(d => {
+    const timestamp = new Date(d.timestamp).getTime();
+    if (timestamp >= startTime && timestamp <= endTime) {
+      const key = Math.floor(timestamp / interval) * interval;
+      if (groupedData[key]) {
+        groupedData[key].push(d);
+      }
+    }
   });
+
+  const result: CandlestickData[] = [];
+  let prevClose: number | null = null;
+
+  Object.entries(groupedData).forEach(([timestamp, values], index) => {
+    if (values.length === 0) {
+      if (prevClose !== null) {
+        result.push({
+          date: new Date(Number(timestamp)),
+          open: prevClose,
+          close: prevClose,
+          high: prevClose,
+          low: prevClose
+        });
+      }
+    } else {
+      const metricValues = values.map(v => Number(v[metric]));
+      const candlestick: CandlestickData = {
+        date: new Date(Number(timestamp)),
+        open: prevClose !== null ? prevClose : metricValues[0],
+        close: metricValues[metricValues.length - 1],
+        high: Math.max(...metricValues),
+        low: Math.min(...metricValues)
+      };
+      result.push(candlestick);
+      prevClose = candlestick.close;
+    }
+  });
+
+  return result;
 };
 
 export const ChartComponent: React.FC<ChartProps> = ({ data, metric }) => {
@@ -64,7 +104,7 @@ export const ChartComponent: React.FC<ChartProps> = ({ data, metric }) => {
           </button>
         ))}
       </div>
-      <div className="flex-grow relative" style={{ height: 'calc(100% - 50px)' }}>
+      <div className="flex-grow relative" style={{ height: 'calc(100% - 50px)', minHeight: '400px' }}>
         <CandlestickChart 
           data={chartData} 
           width="100%" 

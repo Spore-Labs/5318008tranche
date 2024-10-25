@@ -28,18 +28,29 @@ export async function POST(request: Request) {
     const now = new Date();
     now.setSeconds(0, 0); // Set seconds and milliseconds to 0
 
-    const tokenData = new TokenData({
-      timestamp: now,
-      total: Number(totalData.result) / 1e18,
-      circulating: Number(circulatingData.result) / 1e18,
-      fdv: Number(fdvmcapData.result),
-      marketCap: Number(circulatingmcapData.result),
-      liquidity: Number(liquidityData.result)
+    // Check if an entry already exists for this minute
+    const existingEntry = await TokenData.findOne({
+      timestamp: {
+        $gte: new Date(now.getTime() - 60000),
+        $lt: now
+      }
     });
 
-    await tokenData.save();
+    if (!existingEntry) {
+      const tokenData = new TokenData({
+        timestamp: now,
+        total: Number(totalData.result) / 1e18,
+        circulating: Number(circulatingData.result) / 1e18,
+        fdv: Number(fdvmcapData.result),
+        marketCap: Number(circulatingmcapData.result),
+        liquidity: Number(liquidityData.result)
+      });
 
-    return NextResponse.json({ message: 'Token data updated successfully' });
+      await tokenData.save();
+      return NextResponse.json({ message: 'Token data updated successfully' });
+    } else {
+      return NextResponse.json({ message: 'Token data already exists for this minute' });
+    }
   } catch (error: unknown) {
     console.error('Error in update-token-data:', error);
     return NextResponse.json(

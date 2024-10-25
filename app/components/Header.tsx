@@ -19,7 +19,7 @@ const Header: React.FC = () => {
         <div className="flex items-center">
           <Link href="https://5318008.io" target="_blank" rel="noopener noreferrer" className="flex items-center">
             <Image src="/logo.svg" alt="Project Logo" width={50} height={50} />
-            <span className="ml-2 text-text-light dark:text-text-dark text-xl font-bold">$BOOB Progressive Liquidity System</span>
+            <span className="ml-2 text-text-light dark:text-text-dark text-xl font-bold">$BOOB Progressive Liquidity Dashboard</span>
           </Link>
         </div>
         <div className="flex flex-col items-center">

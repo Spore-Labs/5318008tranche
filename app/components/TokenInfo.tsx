@@ -32,7 +32,7 @@ const TokenInfo: React.FC<TokenInfoProps> = ({
 }) => {
   const [tokenData, setTokenData] = useState<TokenData | null>(null)
   const [historicalData, setHistoricalData] = useState<TokenData[]>([])
-  const [selectedMetric, setSelectedMetric] = useState<keyof Omit<TokenData, 'timestamp'>>('total')
+  const [selectedMetric, setSelectedMetric] = useState<keyof Omit<TokenData, 'timestamp'>>('marketCap')
   const [error, setError] = useState<string | null>(null)
 
   const { data: tranchesData } = useReadContract({
@@ -41,59 +41,61 @@ const TokenInfo: React.FC<TokenInfoProps> = ({
     functionName: 'getAvailableTranches',
   })
 
-  // Reuse existing fetchTokenData logic
-  useEffect(() => {
-    const fetchTokenData = async () => {
-      try {
-        const currentDataEndpoints = [
-          'https://docs.5318008.io/api/total',
-          'https://docs.5318008.io/api/circulating',
-          'https://docs.5318008.io/api/fdvmcap',
-          'https://docs.5318008.io/api/circulatingmcap',
-          'https://docs.5318008.io/api/liquidity'
-        ]
+  const fetchTokenData = useCallback(async () => {
+    try {
+      const currentDataEndpoints = [
+        'https://docs.5318008.io/api/total',
+        'https://docs.5318008.io/api/circulating',
+        'https://docs.5318008.io/api/fdvmcap',
+        'https://docs.5318008.io/api/circulatingmcap',
+        'https://docs.5318008.io/api/liquidity'
+      ]
 
-        const results = await Promise.all(currentDataEndpoints.map(async url => {
-          const response = await fetch(url)
-          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
-          return response.json()
-        }))
+      const results = await Promise.all(currentDataEndpoints.map(async url => {
+        const response = await fetch(url)
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
+        return response.json()
+      }))
 
-        const [total, circulating, fdvmcap, circulatingmcap, liquidity] = results
+      const [total, circulating, fdvmcap, circulatingmcap, liquidity] = results
 
-        const currentData: TokenData = {
-          total: Number(total.result) / 1e18,
-          circulating: Number(circulating.result) / 1e18,
-          fdv: Number(fdvmcap.result),
-          marketCap: Number(circulatingmcap.result),
-          liquidity: Number(liquidity.result),
-          timestamp: new Date().toISOString(),
-        }
-
-        setTokenData(currentData)
-
-        // Fetch historical data
-        const historicalResponse = await fetch('/api/historical-token-data')
-        if (!historicalResponse.ok) throw new Error(`HTTP error! status: ${historicalResponse.status}`)
-        const historicalData: TokenData[] = await historicalResponse.json()
-
-        // Process historical data to include OHLC values
-        const processedHistoricalData = historicalData.map((data, index, array) => ({
-          ...data,
-          open: index > 0 ? array[index - 1].marketCap : data.marketCap,
-          high: Math.max(data.marketCap, index > 0 ? array[index - 1].marketCap : data.marketCap),
-          low: Math.min(data.marketCap, index > 0 ? array[index - 1].marketCap : data.marketCap),
-          close: data.marketCap
-        }))
-
-        setHistoricalData([...processedHistoricalData, currentData])
-      } catch (error) {
-        console.error('Error fetching token data:', error)
-        setError(error instanceof Error ? error.message : 'An unknown error occurred')
+      const currentData: TokenData = {
+        total: Number(total.result) / 1e18,
+        circulating: Number(circulating.result) / 1e18,
+        fdv: Number(fdvmcap.result),
+        marketCap: Number(circulatingmcap.result),
+        liquidity: Number(liquidity.result),
+        timestamp: new Date().toISOString(),
       }
+
+      setTokenData(currentData)
+
+      // Fetch historical data
+      const historicalResponse = await fetch('/api/historical-token-data')
+      if (!historicalResponse.ok) throw new Error(`HTTP error! status: ${historicalResponse.status}`)
+      const historicalData: TokenData[] = await historicalResponse.json()
+
+      // Process historical data to include OHLC values
+      const processedHistoricalData = historicalData.map((data, index, array) => ({
+        ...data,
+        open: index > 0 ? array[index - 1].marketCap : data.marketCap,
+        high: Math.max(data.marketCap, index > 0 ? array[index - 1].marketCap : data.marketCap),
+        low: Math.min(data.marketCap, index > 0 ? array[index - 1].marketCap : data.marketCap),
+        close: data.marketCap
+      }))
+
+      setHistoricalData([...processedHistoricalData, currentData])
+    } catch (error) {
+      console.error('Error fetching token data:', error)
+      setError(error instanceof Error ? error.message : 'An unknown error occurred')
     }
-    fetchTokenData()
   }, [])
+
+  useEffect(() => {
+    if (isConnected && contractAddress) {
+      fetchTokenData()
+    }
+  }, [isConnected, contractAddress, fetchTokenData])
 
   if (error) return <div>Error loading token information: {error}</div>
   if (!tokenData) return <div>Loading token information...</div>
