@@ -5,8 +5,7 @@ import { TokenData } from '../types'
 import { ChartComponent } from './ChartComponent'
 import { MetricButton } from './MetricButton'
 import { SwappingFrame } from './SwappingFrame'
-import { useAccount, useReadContract, useChainId } from 'wagmi'
-import { getContractAddress } from '../utils/contractUtils'
+import { useReadContract } from 'wagmi'
 import contractABI from '../../contractABI.json'
 
 interface TokenInfoProps {
@@ -130,7 +129,6 @@ const TokenInfo: React.FC<TokenInfoProps> = ({
         </div>
         <div className="w-1/4 pl-1 h-full overflow-auto">
           <SwappingFrame
-            showUniswap={false}
             availableTranches={availableTranches}
             trancheSupply={trancheSupply}
             trancheSold={trancheSold}

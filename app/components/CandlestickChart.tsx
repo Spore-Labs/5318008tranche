@@ -39,8 +39,8 @@ const CandlestickChart: React.FC<CandlestickChartProps> = ({ data, width, height
 
     const xExtent = d3.extent(data, d => d.date) as [Date, Date];
     const xDomain: [Date, Date] = [
-      new Date(xExtent[0].getTime() - (xExtent[1].getTime() - xExtent[0].getTime()) / (data.length - 1)),
-      new Date(xExtent[1].getTime() + (xExtent[1].getTime() - xExtent[0].getTime()) / (data.length - 1))
+      d3.timeMillisecond.offset(xExtent[0], -getTimeframeMilliseconds(timeFrame) / 2),
+      d3.timeMillisecond.offset(xExtent[1], getTimeframeMilliseconds(timeFrame) / 2)
     ];
 
     const x = d3.scaleTime()
@@ -56,7 +56,14 @@ const CandlestickChart: React.FC<CandlestickChartProps> = ({ data, width, height
       .domain([yDomain[0] - yPadding, yDomain[1] + yPadding])
       .range([innerHeight, 0]);
 
+    // Adjust x-axis based on timeframe
     const xAxis = d3.axisBottom(x);
+    const tickFormat = getTickFormat(timeFrame);
+    const tickValues = data.map(d => d.date); // Use actual data points for ticks
+
+    xAxis.tickFormat(tickFormat as any)
+         .tickValues(tickValues);
+
     const yAxis = d3.axisLeft(y);
 
     g.append("g")
@@ -85,10 +92,8 @@ const CandlestickChart: React.FC<CandlestickChartProps> = ({ data, width, height
     g.selectAll(".grid path")
       .style("stroke-width", 0);
 
-    // Calculate candlestick width with gap
-    const totalCandleWidth = innerWidth / data.length;
-    const gapPercentage = 0.2; // 20% gap between candlesticks
-    const candleWidth = totalCandleWidth * (1 - gapPercentage);
+    // Calculate candlestick width
+    const candleWidth = (innerWidth / data.length) * 0.8; // 80% of available space
 
     const candlesticks = g.selectAll<SVGGElement, CandlestickData>(".candlestick")
       .data(data)
@@ -115,6 +120,78 @@ const CandlestickChart: React.FC<CandlestickChartProps> = ({ data, width, height
       .attr("fill", d => d.open > d.close ? "red" : "green")
       .attr("stroke", "black")
       .attr("stroke-width", 0.5);
+  };
+
+  // Helper functions
+  const getTickFormat = (timeFrame: string): (d: Date | number) => string => {
+    switch (timeFrame) {
+      case '15m':
+      case '1h':
+      case '4h':
+        return (d: Date | number) => d3.timeFormat('%H:%M')(new Date(d));
+      case '1d':
+        return (d: Date | number) => d3.timeFormat('%b %d')(new Date(d));
+      case '1w':
+        return (d: Date | number) => d3.timeFormat('%b %d')(d3.timeMonday(new Date(d)));
+      case '1M':
+        return (d: Date | number) => d3.timeFormat('%b %Y')(new Date(d));
+      default:
+        return (d: Date | number) => d3.timeFormat('%b %d')(new Date(d));
+    }
+  };
+
+  const getTickValues = (data: CandlestickData[], timeFrame: string): Date[] => {
+    const extent = d3.extent(data, d => d.date) as [Date, Date];
+    if (!extent[0] || !extent[1]) return [];
+    
+    const timeframeMs = getTimeframeMilliseconds(timeFrame);
+    const start = d3.timeMillisecond.offset(extent[0], -timeframeMs);
+    const end = d3.timeMillisecond.offset(extent[1], timeframeMs);
+    
+    switch (timeFrame) {
+      case '15m':
+        return d3.timeMinute.every(30)?.range(start, end) || [];
+      case '1h':
+        return d3.timeHour.every(2)?.range(start, end) || [];
+      case '4h':
+        return d3.timeHour.every(4)?.range(start, end) || [];
+      case '1d':
+        return d3.timeDay.every(1)?.range(start, end) || [];
+      case '1w':
+        return d3.timeWeek.every(1)?.range(start, end) || [];
+      case '1M':
+        return d3.timeMonth.every(1)?.range(start, end) || [];
+      default:
+        return d3.timeDay.range(start, end);
+    }
+  };
+
+  const getCandleWidth = (chartWidth: number, dataLength: number, timeFrame: string): number => {
+    const baseWidth = chartWidth / dataLength;
+    switch (timeFrame) {
+      case '15m':
+      case '1h':
+      case '4h':
+        return baseWidth * 0.8; // Reduce width for shorter timeframes
+      case '1d':
+      case '1w':
+      case '1M':
+        return baseWidth * 0.9;
+      default:
+        return baseWidth * 0.9;
+    }
+  };
+
+  const getTimeframeMilliseconds = (timeFrame: string): number => {
+    switch (timeFrame) {
+      case '15m': return 15 * 60 * 1000;
+      case '1h': return 60 * 60 * 1000;
+      case '4h': return 4 * 60 * 60 * 1000;
+      case '1d': return 24 * 60 * 60 * 1000;
+      case '1w': return 7 * 24 * 60 * 60 * 1000;
+      case '1M': return 30 * 24 * 60 * 60 * 1000; // Approximation
+      default: return 24 * 60 * 60 * 1000;
+    }
   };
 
   useEffect(() => {
