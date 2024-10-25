@@ -3,7 +3,7 @@ import dbConnect from '../../../../lib/mongodb';
 import TokenData from '../../../../models/TokenData';
 
 export async function POST(request: Request) {
-  // Verify that the request is coming from Vercel's cron job
+  // Verify that the request is coming from GitHub Actions
   const authHeader = request.headers.get('authorization');
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
