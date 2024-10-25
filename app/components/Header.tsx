@@ -14,7 +14,7 @@ const Header: React.FC = () => {
   const contractAddress = getContractAddress(chainId)
 
   return (
-    <header className="bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark p-4 shadow-soft border-b border-primary-light dark:border-primary-dark">
+    <header className="bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark  p-4 shadow-soft border-b border-primary-light dark:border-primary-dark">
       <div className="container mx-auto flex justify-between items-center">
         <div className="flex items-center">
           <Link href="https://5318008.io" target="_blank" rel="noopener noreferrer" className="flex items-center">

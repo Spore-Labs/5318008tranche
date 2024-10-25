@@ -7,6 +7,7 @@ interface TrancheButtonProps {
   supply: bigint;
   sold: bigint;
   priceDifference: bigint;
+  isSelected: boolean;
 }
 
 const TrancheButton: React.FC<TrancheButtonProps> = ({
@@ -20,23 +21,31 @@ const TrancheButton: React.FC<TrancheButtonProps> = ({
   const soldPercentage = supply > BigInt(0) ? Number((sold * BigInt(10000)) / supply) / 100 : 0;
   const isSoldOut = sold >= supply && supply > BigInt(0);
 
+  const buttonClass = "w-full py-2 px-4 btn-primary dark:btn-secondary border border-primary-light dark:border-primary-dark text-white rounded-lg transition-colors";
+
+  if (!isAvailable || isSoldOut) {
+    return (
+      <button className={buttonClass} disabled>
+        <div className="flex justify-between items-center">
+          <span className="font-semibold">Tranche {trancheIndex}</span>
+          <span>{isSoldOut ? 'Sold Out' : 'Not Available'}</span>
+        </div>
+      </button>
+    );
+  }
+
   return (
     <button
-      className={`btn-primary dark:btn-secondary ${!isAvailable || isSoldOut ? 'opacity-50' : ''} shadow-soft hover:shadow-md transition-shadow duration-300`}
+      className={buttonClass}
       onClick={onBuy}
-      disabled={!isAvailable || isSoldOut}
     >
-      <div className="flex flex-col h-full justify-between">
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-lg">Tranche {trancheIndex}</span>
-          <span className={`text-sm ${isAvailable ? 'text-green-300' : isSoldOut ? 'text-red-300' : 'text-gray-500'}`}>
-            {isAvailable ? 'Available' : isSoldOut ? 'Sold Out' : 'Not Available'}
-          </span>
-        </div>
-        <div className="text-sm">
-          <div className="mb-1">Price above Unlock: {(Number(priceDifference) / 100).toFixed(2)}%</div>
-          <div>Percentage Sold: {soldPercentage.toFixed(2)}%</div>
-        </div>
+      <div className="flex justify-between items-center">
+        <span className="font-bold">Tranche {trancheIndex}</span>
+        <span className="text-green-300 text-sm">Available</span>
+      </div>
+      <div className="flex justify-between text-sm">
+        <span>Price: {(Number(priceDifference) / 100).toFixed(2)}%</span>
+        <span>Sold: {soldPercentage.toFixed(2)}%</span>
       </div>
     </button>
   );

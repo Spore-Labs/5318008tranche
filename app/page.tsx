@@ -56,7 +56,7 @@ export default function Home() {
     functionName: 'getAvailableTranches',
   })
 
-  // @ts-expect-error Type instantiation is excessively deep and possibly infinite.
+  
   const supplyResults = useReadContracts<TrancheSupplyContract[]>({
     contracts: availableTranches.map((_, index) => ({
       address: contractAddress as `0x${string}`,
@@ -147,44 +147,24 @@ export default function Home() {
   }
 
   return (
-    <main className="container mx-auto p-4 bg-content-light dark:bg-content-dark text-text-light dark:text-text-dark">
-      <TokenInfo />
-      {isConnected && !contractAddress && (
-        <div className="mt-4 p-4 bg-secondary-light dark:bg-secondary-dark text-text-light dark:text-text-dark rounded">
-          Please switch to Mainnet or Sepolia network.
-        </div>
-      )}
-      {isConnected && contractAddress && (
-        <div className="mt-4 w-full">
-          <h2 className="text-2xl font-bold mb-4 text-text-light dark:text-text-dark">Available Tranches</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-8">
-            {availableTranches.slice(0, 12).map((isAvailable, index) => (
-              <TrancheButton
-                key={index}
-                trancheIndex={index}
-                isAvailable={isAvailable}
-                onBuy={() => {
-                  setSelectedTrancheIndex(index)
-                  setSelectedMaxPriceDifference(priceDifference && priceDifference[index] ? Number(priceDifference[index]) + 500 : 500)
-                  const updateSaleUI = memoizedOnRef(null)
-                  if (updateSaleUI) {
-                    updateSaleUI(index, priceDifference && priceDifference[index] ? Number(priceDifference[index]) + 500 : 500)
-                  }
-                }}
-                supply={trancheSupply[index]}
-                sold={trancheSold[index]}
-                priceDifference={priceDifference && priceDifference[index] ? priceDifference[index] : BigInt(0)}
-              />
-            ))}
-          </div>
-          <SaleUI
-            contractAddress={contractAddress}
-            selectedTrancheIndex={selectedTrancheIndex}
-            selectedMaxPriceDifference={selectedMaxPriceDifference}
-            onRef={memoizedOnRef}
-          />
-        </div>
-      )}
+    <main className="flex flex-col h-full bg-content-light dark:bg-content-dark text-text-light dark:text-text-dark">
+      <TokenInfo
+        isConnected={isConnected}
+        contractAddress={contractAddress}
+        availableTranches={availableTranches}
+        trancheSupply={trancheSupply}
+        trancheSold={trancheSold}
+        priceDifference={priceDifference}
+        onBuyTranche={(index: number) => {
+          setSelectedTrancheIndex(index)
+          setSelectedMaxPriceDifference(priceDifference && priceDifference[index] ? Number(priceDifference[index]) + 500 : 500)
+          const updateSaleUI = memoizedOnRef(null)
+          if (updateSaleUI) {
+            updateSaleUI(index, priceDifference && priceDifference[index] ? Number(priceDifference[index]) + 500 : 500)
+          }
+        }}
+        onRef={memoizedOnRef}
+      />
     </main>
   )
 }

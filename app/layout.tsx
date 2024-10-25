@@ -15,21 +15,22 @@ export const metadata: Metadata = {
   description: 'Buy $BOOB Tranches'
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children
 }: {
   children: React.ReactNode
 }) {
-  const cookies = headers().get('cookie')
+  const headersList = await headers()
+  const cookies = headersList.get('cookie')
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} flex flex-col min-h-screen bg-content-light dark:bg-content-dark text-text-light dark:text-text-dark`}>
+      <body className={`${inter.className} flex flex-col h-screen bg-content-light dark:bg-content-dark text-text-light dark:text-text-dark`}>
         <Providers>
           <ContextProvider cookies={cookies}>
             <Header />
-            <main className="flex-grow bg-content-light dark:bg-content-dark p-8">
-              <div className="container mx-auto">
+            <main className="flex-grow bg-content-light dark:bg-content-dark p-4 overflow-hidden">
+              <div className="container mx-auto h-full">
                 {children}
               </div>
             </main>
