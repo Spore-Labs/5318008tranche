@@ -20,6 +20,7 @@ export interface CandlestickData {
 export interface CandlestickChartProps {
   data: CandlestickData[];
   timeFrame: string;
+  metric: keyof Omit<TokenData, 'timestamp'>;
 }
 
 export interface ChartProps {

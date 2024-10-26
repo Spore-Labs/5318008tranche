@@ -3,7 +3,7 @@ import * as d3 from 'd3';
 import { useTheme } from 'next-themes';
 import { CandlestickData, CandlestickChartProps } from '../types';
 
-const CandlestickChart: React.FC<CandlestickChartProps> = ({ data, timeFrame }) => {
+const CandlestickChart: React.FC<CandlestickChartProps> = ({ data, timeFrame, metric }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const { theme } = useTheme();
   const textColor = theme === 'dark' ? '#dbd1f5' : '#140a2e';
@@ -41,6 +41,16 @@ const CandlestickChart: React.FC<CandlestickChartProps> = ({ data, timeFrame }) 
       .domain([yDomain[0] - yPadding, yDomain[1] + yPadding])
       .range([innerHeight, 0]);
 
+    // Modify y-axis to include "$" for specific metrics
+    const yAxis = d3.axisLeft(y);
+    if (['fdv', 'marketCap', 'liquidity'].includes(metric)) {
+      yAxis.tickFormat(d => `$${d3.format(",.0f")(d)}`);
+    }
+
+    g.append("g")
+      .attr("class", "y-axis")
+      .call(yAxis);
+
     // Adjust x-axis based on timeframe
     const xAxis = d3.axisBottom(x);
     const tickFormat = getTickFormat(timeFrame);
@@ -62,9 +72,14 @@ const CandlestickChart: React.FC<CandlestickChartProps> = ({ data, timeFrame }) 
           return shouldShow ? null : "none";
         } as any));
 
-    g.append("g")
-      .attr("class", "y-axis")
-      .call(d3.axisLeft(y));
+    // Add x-axis label for UTC time
+    g.append("text")
+      .attr("class", "x-axis-label")
+      .attr("text-anchor", "middle")
+      .attr("x", innerWidth / 2)
+      .attr("y", innerHeight + margin.bottom - 5)
+      .style("fill", textColor)
+      .text("Time (UTC)");
 
     // Add grid lines
     g.append("g")
@@ -115,9 +130,9 @@ const CandlestickChart: React.FC<CandlestickChartProps> = ({ data, timeFrame }) 
 
   // Helper functions
   const getTickFormat = (timeFrame: string): (d: Date | number) => string => {
-    const formatTime = d3.timeFormat('%H:%M');
-    const formatDate = d3.timeFormat('%b %d');
-    const formatMonthYear = d3.timeFormat('%b %Y');
+    const formatTime = d3.utcFormat('%H:%M');
+    const formatDate = d3.utcFormat('%b %d');
+    const formatMonthYear = d3.utcFormat('%b %Y');
 
     return (d: Date | number) => {
       const date = new Date(d);
@@ -125,13 +140,13 @@ const CandlestickChart: React.FC<CandlestickChartProps> = ({ data, timeFrame }) 
         case '15m':
         case '1h':
         case '4h':
-          return date.getHours() === 0 && date.getMinutes() === 0 
+          return date.getUTCHours() === 0 && date.getUTCMinutes() === 0 
             ? formatDate(date) 
             : formatTime(date);
         case '1d':
           return formatDate(date);
         case '1w':
-          return formatDate(d3.timeMonday(date));
+          return formatDate(d3.utcMonday(date));
         case '1M':
           return formatMonthYear(date);
         default:
@@ -141,23 +156,30 @@ const CandlestickChart: React.FC<CandlestickChartProps> = ({ data, timeFrame }) 
   };
 
   const shouldShowTick = (date: Date, timeFrame: string): boolean => {
-    // Convert to UTC hours and minutes
     const utcHours = date.getUTCHours();
     const utcMinutes = date.getUTCMinutes();
+    const utcDay = date.getUTCDay();
+    const utcDate = date.getUTCDate();
 
     switch (timeFrame) {
       case '15m':
+        // Show ticks at 00:00, 00:30, 01:00, 01:30, etc. UTC
         return utcMinutes % 30 === 0;
       case '1h':
+        // Show ticks at 00:00, 02:00, 04:00, etc. UTC
         return utcHours % 2 === 0 && utcMinutes === 0;
       case '4h':
-        return utcHours % 4 === 0 && utcMinutes === 0;
+        // Show ticks at 00:00, 08:00, 16:00 UTC
+        return [0, 8, 16].includes(utcHours) && utcMinutes === 0;
       case '1d':
-        return utcHours === 0 && utcMinutes === 0;
+        // Show ticks every other day at 00:00 UTC
+        return utcHours === 0 && utcMinutes === 0 && utcDate % 2 === 0;
       case '1w':
-        return date.getUTCDay() === 1 && utcHours === 0 && utcMinutes === 0; // Monday
+        // Show ticks every other Monday at 00:00 UTC
+        return utcDay === 1 && utcHours === 0 && utcMinutes === 0 && (utcDate / 7) % 2 === 0;
       case '1M':
-        return date.getUTCDate() === 1 && utcHours === 0 && utcMinutes === 0;
+        // Show ticks every other month on the 1st at 00:00 UTC
+        return utcDate === 1 && utcHours === 0 && utcMinutes === 0 && date.getUTCMonth() % 2 === 0;
       default:
         return true;
     }

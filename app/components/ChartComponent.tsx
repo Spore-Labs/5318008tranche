@@ -31,6 +31,7 @@ export const ChartComponent: React.FC<ChartProps> = ({ data, metric }) => {
         <CandlestickChart 
           data={chartData} 
           timeFrame={timeFrame} 
+          metric={metric}
         />
       </div>
     </div>

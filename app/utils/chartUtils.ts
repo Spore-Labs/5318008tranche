@@ -10,50 +10,85 @@ const msPerTimeFrame: { [key: string]: number } = {
 };
 
 export const aggregateData = (data: TokenData[], timeFrame: string, metric: keyof Omit<TokenData, 'timestamp'>): CandlestickData[] => {
-  if (data.length === 0) {
-    console.warn('aggregateData: Input data is empty');
-    return [];
-  }
+  if (data.length === 0) return [];
 
-  const interval = msPerTimeFrame[timeFrame] || msPerTimeFrame['15m'];
-  const lastDataPoint = new Date(data[data.length - 1].timestamp);
-  let endTime = new Date(lastDataPoint);
-  let startTime = new Date(endTime.getTime() - (interval * 120)); // Only keep the latest 120 intervals
+  const interval = msPerTimeFrame[timeFrame];
+  const latestTimestamp = Math.max(...data.map(d => new Date(d.timestamp).getTime()));
+  const endTime = new Date(latestTimestamp);
+  const startTime = new Date(latestTimestamp - (71 * interval)); // 72 ticks including the last one
 
-  // Adjust start and end times for all timeframes
-  const roundToInterval = (date: Date, intervalMs: number) => {
-    return new Date(Math.floor(date.getTime() / intervalMs) * intervalMs);
+  const roundToInterval = (date: Date): Date => {
+    const utcDate = new Date(date.toUTCString());
+    switch (timeFrame) {
+      case '15m':
+        return new Date(Date.UTC(
+          utcDate.getUTCFullYear(),
+          utcDate.getUTCMonth(),
+          utcDate.getUTCDate(),
+          utcDate.getUTCHours(),
+          Math.floor(utcDate.getUTCMinutes() / 15) * 15
+        ));
+      case '1h':
+        return new Date(Date.UTC(
+          utcDate.getUTCFullYear(),
+          utcDate.getUTCMonth(),
+          utcDate.getUTCDate(),
+          utcDate.getUTCHours()
+        ));
+      case '4h':
+        return new Date(Date.UTC(
+          utcDate.getUTCFullYear(),
+          utcDate.getUTCMonth(),
+          utcDate.getUTCDate(),
+          Math.floor(utcDate.getUTCHours() / 4) * 4
+        ));
+      case '1d':
+        return new Date(Date.UTC(
+          utcDate.getUTCFullYear(),
+          utcDate.getUTCMonth(),
+          utcDate.getUTCDate()
+        ));
+      case '1w':
+        const daysSinceMonday = (utcDate.getUTCDay() + 6) % 7; // Monday is 0
+        return new Date(Date.UTC(
+          utcDate.getUTCFullYear(),
+          utcDate.getUTCMonth(),
+          utcDate.getUTCDate() - daysSinceMonday
+        ));
+      case '1M':
+        return new Date(Date.UTC(
+          utcDate.getUTCFullYear(),
+          utcDate.getUTCMonth(),
+          1
+        ));
+      default:
+        return utcDate;
+    }
   };
 
-  startTime = roundToInterval(startTime, interval);
-  endTime = roundToInterval(new Date(endTime.getTime() + interval), interval);
+  // Filter data to only include points within the 72 tick range
+  const filteredData = data.filter(d => {
+    const timestamp = new Date(d.timestamp);
+    return timestamp >= startTime && timestamp <= endTime;
+  });
 
-  if (timeFrame === '1w') {
-    // Adjust to start of the week (Monday)
-    startTime.setDate(startTime.getDate() - startTime.getDay() + 1);
-    endTime.setDate(endTime.getDate() - endTime.getDay() + 1);
-  } else if (timeFrame === '1M') {
-    // Adjust to start of the month
-    startTime.setDate(1);
-    endTime.setDate(1);
-    endTime.setMonth(endTime.getMonth() + 1);
-  }
+  const groupedData: { [key: number]: TokenData[] } = {};
 
-  const groupedData: Record<number, TokenData[]> = {};
-  for (let i = startTime.getTime(); i <= endTime.getTime(); i += interval) {
+  // Initialize groupedData with empty arrays for each interval
+  for (let i = roundToInterval(startTime).getTime(); i <= endTime.getTime(); i += interval) {
     groupedData[i] = [];
   }
 
-  data.forEach(d => {
-    const timestamp = new Date(d.timestamp).getTime();
-    if (timestamp >= startTime.getTime() && timestamp < endTime.getTime()) {
-      const key = roundToInterval(new Date(timestamp), interval).getTime();
-      if (groupedData[key]) {
-        groupedData[key].push(d);
-      }
+  // Group filtered data into respective intervals
+  filteredData.forEach(d => {
+    const timestamp = new Date(d.timestamp);
+    const key = roundToInterval(timestamp).getTime();
+    if (groupedData[key]) {
+      groupedData[key].push(d);
     }
   });
 
+  // Create CandlestickData from grouped data
   const result: CandlestickData[] = [];
   let prevClose: number | null = null;
 
