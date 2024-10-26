@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useChainId, useConfig } from 'wagmi'
 import { toast } from 'react-hot-toast'
 import { TransactionReceipt } from 'viem'
+import { SaleUIProps } from '../types'
 
 const trancheBuyABI = [
   {
@@ -17,13 +18,6 @@ const trancheBuyABI = [
     type: 'function'
   }
 ]
-
-interface SaleUIProps {
-  contractAddress: `0x${string}`
-  selectedTrancheIndex: number | null
-  selectedMaxPriceDifference: number | null
-  onRef: (ref: { updateTrancheIndex: (index: number) => void, updateMaxPriceDifference: (diff: number) => void } | null) => void
-}
 
 const SaleUI: React.FC<SaleUIProps> = ({ contractAddress, selectedTrancheIndex, selectedMaxPriceDifference, onRef }) => {
   const [trancheIndex, setTrancheIndex] = useState<number>(0)

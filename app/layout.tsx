@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
 import '../styles/globals.css'
 import { Toaster } from 'react-hot-toast'
 import { headers } from 'next/headers'
@@ -8,11 +7,22 @@ import Footer from './components/Footer'
 import Header from './components/Header'
 import { Providers } from './providers'
 
-const inter = Inter({ subsets: ['latin'] })
-
 export const metadata: Metadata = {
   title: '5318008 Dashboard',
-  description: 'Dashboard for $BOOB Tranches'
+  description: 'Dashboard for $BOOB Tranches',
+  icons: [
+    {
+      rel: 'icon',
+      type: 'image/svg+xml',
+      url: '/favicon.svg',
+    },
+    {
+      rel: 'icon',
+      type: 'image/png',
+      sizes: '32x32',
+      url: '/favicon-32x32.png',
+    },
+  ],
 }
 
 export default async function RootLayout({
@@ -25,7 +35,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} flex flex-col h-screen bg-content-light dark:bg-content-dark text-text-light dark:text-text-dark`}>
+      <body className={`flex flex-col h-screen bg-content-light dark:bg-content-dark text-text-light dark:text-text-dark`}>
         <Providers>
           <ContextProvider cookies={cookies}>
             <Header />

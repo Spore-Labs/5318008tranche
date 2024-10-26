@@ -1,14 +1,5 @@
 import React from 'react';
-
-interface TrancheButtonProps {
-  trancheIndex: number;
-  isAvailable: boolean;
-  onBuy: () => void;
-  supply: bigint;
-  sold: bigint;
-  priceDifference: bigint;
-  isSelected: boolean;
-}
+import { TrancheButtonProps } from '../types';
 
 const TrancheButton: React.FC<TrancheButtonProps> = ({
   trancheIndex,

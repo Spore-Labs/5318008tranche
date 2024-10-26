@@ -1,24 +1,9 @@
 import React, { useRef, useEffect } from 'react';
 import * as d3 from 'd3';
 import { useTheme } from 'next-themes';
+import { CandlestickData, CandlestickChartProps } from '../types';
 
-interface CandlestickData {
-  date: Date;
-  open: number;
-  close: number;
-  high: number;
-  low: number;
-}
-
-interface CandlestickChartProps {
-  data: CandlestickData[];
-  width: string | number;
-  height: string | number;
-  isCurrency: boolean;
-  timeFrame: string;
-}
-
-const CandlestickChart: React.FC<CandlestickChartProps> = ({ data, width, height, isCurrency, timeFrame }) => {
+const CandlestickChart: React.FC<CandlestickChartProps> = ({ data, timeFrame }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const { theme } = useTheme();
   const textColor = theme === 'dark' ? '#dbd1f5' : '#140a2e';
@@ -59,21 +44,27 @@ const CandlestickChart: React.FC<CandlestickChartProps> = ({ data, width, height
     // Adjust x-axis based on timeframe
     const xAxis = d3.axisBottom(x);
     const tickFormat = getTickFormat(timeFrame);
-    const tickValues = data.map(d => d.date); // Use actual data points for ticks
+    const tickValues = data.map(d => d.date); //DO NOT CHANGE THIS CONSTANT
 
     xAxis.tickFormat(tickFormat as any)
          .tickValues(tickValues);
 
-    const yAxis = d3.axisLeft(y);
-
+    // Render x-axis with filtered ticks
     g.append("g")
       .attr("class", "x-axis")
       .attr("transform", `translate(0,${innerHeight})`)
-      .call(xAxis);
+      .call(xAxis)
+      .call(g => g.selectAll(".tick")
+        .attr("display", function(this: SVGGElement, d: unknown) {
+          const date = new Date(d as Date);
+          const shouldShow = shouldShowTick(date, timeFrame);
+          console.log(`Date: ${date.toISOString()}, TimeFrame: ${timeFrame}, ShouldShow: ${shouldShow}, UTCHours: ${date.getUTCHours()}, UTCMinutes: ${date.getUTCMinutes()}`);
+          return shouldShow ? null : "none";
+        } as any));
 
     g.append("g")
       .attr("class", "y-axis")
-      .call(yAxis);
+      .call(d3.axisLeft(y));
 
     // Add grid lines
     g.append("g")
@@ -124,19 +115,51 @@ const CandlestickChart: React.FC<CandlestickChartProps> = ({ data, width, height
 
   // Helper functions
   const getTickFormat = (timeFrame: string): (d: Date | number) => string => {
+    const formatTime = d3.timeFormat('%H:%M');
+    const formatDate = d3.timeFormat('%b %d');
+    const formatMonthYear = d3.timeFormat('%b %Y');
+
+    return (d: Date | number) => {
+      const date = new Date(d);
+      switch (timeFrame) {
+        case '15m':
+        case '1h':
+        case '4h':
+          return date.getHours() === 0 && date.getMinutes() === 0 
+            ? formatDate(date) 
+            : formatTime(date);
+        case '1d':
+          return formatDate(date);
+        case '1w':
+          return formatDate(d3.timeMonday(date));
+        case '1M':
+          return formatMonthYear(date);
+        default:
+          return formatDate(date);
+      }
+    };
+  };
+
+  const shouldShowTick = (date: Date, timeFrame: string): boolean => {
+    // Convert to UTC hours and minutes
+    const utcHours = date.getUTCHours();
+    const utcMinutes = date.getUTCMinutes();
+
     switch (timeFrame) {
       case '15m':
+        return utcMinutes % 30 === 0;
       case '1h':
+        return utcHours % 2 === 0 && utcMinutes === 0;
       case '4h':
-        return (d: Date | number) => d3.timeFormat('%H:%M')(new Date(d));
+        return utcHours % 4 === 0 && utcMinutes === 0;
       case '1d':
-        return (d: Date | number) => d3.timeFormat('%b %d')(new Date(d));
+        return utcHours === 0 && utcMinutes === 0;
       case '1w':
-        return (d: Date | number) => d3.timeFormat('%b %d')(d3.timeMonday(new Date(d)));
+        return date.getUTCDay() === 1 && utcHours === 0 && utcMinutes === 0; // Monday
       case '1M':
-        return (d: Date | number) => d3.timeFormat('%b %Y')(new Date(d));
+        return date.getUTCDate() === 1 && utcHours === 0 && utcMinutes === 0;
       default:
-        return (d: Date | number) => d3.timeFormat('%b %d')(new Date(d));
+        return true;
     }
   };
 
@@ -148,22 +171,32 @@ const CandlestickChart: React.FC<CandlestickChartProps> = ({ data, width, height
     const start = d3.timeMillisecond.offset(extent[0], -timeframeMs);
     const end = d3.timeMillisecond.offset(extent[1], timeframeMs);
     
+    let ticks: Date[];
     switch (timeFrame) {
       case '15m':
-        return d3.timeMinute.every(30)?.range(start, end) || [];
+        ticks = d3.timeMinute.every(60)?.range(start, end) || [];
+        break;
       case '1h':
-        return d3.timeHour.every(2)?.range(start, end) || [];
+        ticks = d3.timeHour.every(4)?.range(start, end) || [];
+        break;
       case '4h':
-        return d3.timeHour.every(4)?.range(start, end) || [];
+        ticks = d3.timeHour.every(8)?.range(start, end) || [];
+        break;
       case '1d':
-        return d3.timeDay.every(1)?.range(start, end) || [];
+        ticks = d3.timeDay.every(2)?.range(start, end) || [];
+        break;
       case '1w':
-        return d3.timeWeek.every(1)?.range(start, end) || [];
+        ticks = d3.timeWeek.every(1)?.range(start, end) || [];
+        break;
       case '1M':
-        return d3.timeMonth.every(1)?.range(start, end) || [];
+        ticks = d3.timeMonth.every(1)?.range(start, end) || [];
+        break;
       default:
-        return d3.timeDay.range(start, end);
+        ticks = d3.timeDay.every(2)?.range(start, end) || [];
     }
+    
+    // Further reduce ticks by keeping every 2nd tick
+    return ticks.filter((_, i) => i % 2 === 0);
   };
 
   const getCandleWidth = (chartWidth: number, dataLength: number, timeFrame: string): number => {
@@ -199,7 +232,7 @@ const CandlestickChart: React.FC<CandlestickChartProps> = ({ data, width, height
 
     const svg = d3.select(svgRef.current);
     renderChart(svg, data);
-  }, [data, width, height, isCurrency, timeFrame, theme]);
+  }, [data, timeFrame, theme]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -214,7 +247,7 @@ const CandlestickChart: React.FC<CandlestickChartProps> = ({ data, width, height
   }, [data, renderChart]);
 
   return data.length > 0 ? (
-    <svg ref={svgRef} width={width} height={height} className="w-full h-full text-text-light dark:text-text-dark"></svg>
+    <svg ref={svgRef}className="w-full h-full text-text-light dark:text-text-dark"></svg>
   ) : (
     <div className="w-full h-full flex items-center justify-center text-text-light dark:text-text-dark">
       No data available for the selected time frame

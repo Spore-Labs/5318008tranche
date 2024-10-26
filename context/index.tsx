@@ -16,10 +16,10 @@ if (!projectId) {
 
 // Set up metadata
 const metadata = {
-  name: 'appkit-example',
-  description: 'AppKit Example',
-  url: 'https://appkitexampleapp.com', // origin must match your domain & subdomai
-  icons: ['https://avatars.githubusercontent.com/u/179229932']
+  name: '5318008 Dashboard',
+  description: 'Dashboard for $BOOB Tranches',
+  url: 'https://dashboard.5318008.io', 
+  icons: ['/favicon.svg']
 }
 
 // Create the modal

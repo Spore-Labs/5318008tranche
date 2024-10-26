@@ -1,23 +1,12 @@
 'use client'
 
 import React, { useEffect, useState, useCallback } from 'react'
-import { TokenData } from '../types'
+import { TokenData, TokenInfoProps } from '../types'
 import { ChartComponent } from './ChartComponent'
 import { MetricButton } from './MetricButton'
 import { SwappingFrame } from './SwappingFrame'
 import { useReadContract } from 'wagmi'
 import contractABI from '../../contractABI.json'
-
-interface TokenInfoProps {
-  isConnected: boolean;
-  contractAddress: `0x${string}` | null;
-  availableTranches: boolean[];
-  trancheSupply: bigint[];
-  trancheSold: bigint[];
-  priceDifference: bigint[] | null;
-  onBuyTranche: (index: number) => void;
-  onRef: (ref: any) => ((trancheIndex: number, maxPriceDifference: number) => void) | null;
-}
 
 const TokenInfo: React.FC<TokenInfoProps> = ({
   isConnected,

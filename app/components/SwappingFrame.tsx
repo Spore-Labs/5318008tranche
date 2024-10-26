@@ -1,16 +1,7 @@
 import React, { useState } from 'react';
 import TrancheButton from './TrancheButton';
 import SaleUI from './SaleUI';
-
-interface SwappingFrameProps {
-  availableTranches: boolean[];
-  trancheSupply: bigint[];
-  trancheSold: bigint[];
-  priceDifference: bigint[];
-  contractAddress: `0x${string}`;
-  onBuyTranche: (index: number) => void;
-  onRef: (ref: { updateTrancheIndex: (index: number) => void, updateMaxPriceDifference: (diff: number) => void } | null) => void;
-}
+import { SwappingFrameProps } from '../types';
 
 export const SwappingFrame: React.FC<SwappingFrameProps> = ({
   availableTranches,

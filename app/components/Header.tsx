@@ -3,15 +3,11 @@ import React from 'react'
 import Image from 'next/image'
 import RebaseButton from './RebaseButton'
 import { SwitchTheme } from './SwitchTheme'
-import { useChainId, useAccount, useBlockNumber } from 'wagmi'
-import { getContractAddress } from '../utils/contractUtils'
+import { useChainId } from 'wagmi'
 import Link from 'next/link'
 
 const Header: React.FC = () => {
   const chainId = useChainId()
-  const { isConnected } = useAccount()
-  const { data: blockNumber } = useBlockNumber()
-  const contractAddress = getContractAddress(chainId)
 
   return (
     <header className="bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark  p-4 shadow-soft border-b border-primary-light dark:border-primary-dark">

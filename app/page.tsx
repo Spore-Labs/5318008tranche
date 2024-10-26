@@ -1,48 +1,23 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
-import { useAccount, useReadContract, useChainId, useReadContracts, useWriteContract, useWaitForTransactionReceipt, useConfig, useBlockNumber } from 'wagmi'
+import { useAccount, useReadContract, useChainId, useReadContracts, useWriteContract, useWaitForTransactionReceipt, useBlockNumber } from 'wagmi'
 import { Abi } from 'viem'
 import { getContractAddress } from './utils/contractUtils'
-import SaleUI from './components/SaleUI'
 import TokenInfo from './components/TokenInfo'
-import TrancheButton from './components/TrancheButton'
 import contractABI from '../contractABI.json'
+import { PriceDifferenceContract, TrancheSupplyContract, TrancheSoldContract } from './types'
 
 const typedContractABI = contractABI as Abi
 
-type PriceDifferenceContract = {
-  address: `0x${string}`
-  abi: typeof typedContractABI
-  functionName: 'getCurrentPriceDifferencePercent'
-  args: [bigint]
-}
-
-type TrancheSupplyContract = {
-  address: `0x${string}`
-  abi: typeof typedContractABI
-  functionName: 'trancheSupplyBaseUnits'
-  args: [bigint]
-}
-
-type TrancheSoldContract = {
-  address: `0x${string}`
-  abi: typeof typedContractABI
-  functionName: 'trancheSoldBaseUnits'
-  args: [bigint]
-}
-
 export default function Home() {
   const [isClient, setIsClient] = useState(false)
-  const config = useConfig()
   const { isConnected, address: account } = useAccount()
   const chainId = useChainId()
   const [availableTranches, setAvailableTranches] = useState<boolean[]>([])
   const [trancheSupply, setTrancheSupply] = useState<bigint[]>([])
   const [trancheSold, setTrancheSold] = useState<bigint[]>([])
   const [priceDifference, setPriceDifference] = useState<bigint[] | null>(null)
-  const [selectedTrancheIndex, setSelectedTrancheIndex] = useState<number | null>(null)
-  const [selectedMaxPriceDifference, setSelectedMaxPriceDifference] = useState<number | null>(null)
 
   useEffect(() => {
     setIsClient(true)
@@ -156,8 +131,6 @@ export default function Home() {
         trancheSold={trancheSold}
         priceDifference={priceDifference}
         onBuyTranche={(index: number) => {
-          setSelectedTrancheIndex(index)
-          setSelectedMaxPriceDifference(priceDifference && priceDifference[index] ? Number(priceDifference[index]) + 500 : 500)
           const updateSaleUI = memoizedOnRef(null)
           if (updateSaleUI) {
             updateSaleUI(index, priceDifference && priceDifference[index] ? Number(priceDifference[index]) + 500 : 500)

@@ -64,7 +64,9 @@ const RebaseButton: React.FC = () => {
   return (
     <div className="flex flex-col items-center">
       <button
-        className={`btn-primary dark:btn-secondary ${!canRebase ? 'opacity-50' : ''} shadow-soft hover:shadow-md transition-shadow duration-300`}
+        className={`btn-primary dark:btn-secondary ${!canRebase ? 'opacity-50' : ''} 
+        shadow-soft hover:shadow-md transition-shadow duration-300
+        text-lg py-3 px-6 rounded-lg font-semibold`}
         onClick={handleRebase}
         disabled={!isConnected || isRebaseConfirming || !canRebase}
       >
