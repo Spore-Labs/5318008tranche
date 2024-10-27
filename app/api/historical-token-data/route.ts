@@ -32,10 +32,36 @@ export async function GET(request: Request) {
         {
           $group: {
             _id: {
-              $dateTrunc: {
-                date: "$timestamp",
-                unit: groupingInterval.unit,
-                binSize: groupingInterval.binSize
+              $switch: {
+                branches: [
+                  {
+                    case: { $eq: [timeFrame, '1w'] },
+                    then: {
+                      $dateFromParts: {
+                        isoWeekYear: { $isoWeekYear: "$timestamp" },
+                        isoWeek: { $isoWeek: "$timestamp" },
+                        isoDayOfWeek: 1
+                      }
+                    }
+                  },
+                  {
+                    case: { $eq: [timeFrame, '1M'] },
+                    then: {
+                      $dateFromParts: {
+                        year: { $year: "$timestamp" },
+                        month: { $month: "$timestamp" },
+                        day: 1
+                      }
+                    }
+                  }
+                ],
+                default: {
+                  $dateTrunc: {
+                    date: "$timestamp",
+                    unit: groupingInterval.unit,
+                    binSize: groupingInterval.binSize
+                  }
+                }
               }
             },
             timestamp: { $first: "$timestamp" },

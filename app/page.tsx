@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
-import { useAccount, useReadContract, useChainId, useReadContracts, useWriteContract, useWaitForTransactionReceipt, useBlockNumber } from 'wagmi'
+import { useAccount, useReadContract, useChainId, useReadContracts, useBlockNumber } from 'wagmi'
 import { Abi } from 'viem'
 import { getContractAddress } from './utils/contractUtils'
 import TokenInfo from './components/TokenInfo'
@@ -87,13 +87,6 @@ export default function Home() {
     }
     return null
   }, [])
-
-  const { writeContract, data: rebaseHash } = useWriteContract()
-
-  const { isLoading: isRebaseConfirming, isSuccess: isRebaseConfirmed } =
-    useWaitForTransactionReceipt({
-      hash: rebaseHash,
-    })
 
   const { data: blockNumber } = useBlockNumber()
   const [lastRebaseBlock, setLastRebaseBlock] = useState<bigint | null>(null)
