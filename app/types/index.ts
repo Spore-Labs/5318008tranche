@@ -20,12 +20,11 @@ export interface CandlestickData {
 export interface CandlestickChartProps {
   data: CandlestickData[];
   timeFrame: string;
-  metric: keyof Omit<TokenData, 'timestamp'>;
+  metric: 'total_close' | 'circulating_close' | 'fdv_close' | 'marketCap_close' | 'liquidity_close';
 }
 
 export interface ChartProps {
-  data: TokenData[];
-  metric: keyof Omit<TokenData, 'timestamp'>;
+  metric: 'total_close' | 'circulating_close' | 'fdv_close' | 'marketCap_close' | 'liquidity_close';
 }
 
 export interface MetricButtonProps {
@@ -100,4 +99,29 @@ export interface TrancheButtonProps {
   sold: bigint;
   priceDifference: bigint;
   isSelected: boolean;
+}
+
+export interface AggregatedTokenData {
+  timestamp: string;
+  [key: string]: string | number; // Add this line to allow string indexing
+  total_open: number;
+  total_high: number;
+  total_low: number;
+  total_close: number;
+  circulating_open: number;
+  circulating_high: number;
+  circulating_low: number;
+  circulating_close: number;
+  fdv_open: number;
+  fdv_high: number;
+  fdv_low: number;
+  fdv_close: number;
+  marketCap_open: number;
+  marketCap_high: number;
+  marketCap_low: number;
+  marketCap_close: number;
+  liquidity_open: number;
+  liquidity_high: number;
+  liquidity_low: number;
+  liquidity_close: number;
 }

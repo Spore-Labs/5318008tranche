@@ -9,4 +9,8 @@ const TokenDataSchema = new mongoose.Schema({
   liquidity: { type: Number, required: true }
 });
 
-export default mongoose.models.TokenData || mongoose.model('TokenData', TokenDataSchema);
+TokenDataSchema.index({ timestamp: -1 });
+
+const TokenData = mongoose.models.TokenData || mongoose.model('TokenData', TokenDataSchema);
+
+export default TokenData;

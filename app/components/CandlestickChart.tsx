@@ -32,6 +32,14 @@ const CandlestickChart: React.FC<CandlestickChartProps> = ({ data, timeFrame, me
       .domain(xDomain)
       .range([0, innerWidth]);
 
+    const xBand = d3.scaleBand()
+      .domain(data.map(d => d.date.getTime().toString()))
+      .range([0, innerWidth])
+      .padding(0.2);
+
+    // Generate ticks based on timeFrame
+    const ticks = generateTicks(data, timeFrame);
+
     const yDomain = [
       d3.min(data, d => d.low) as number,
       d3.max(data, d => d.high) as number
@@ -41,9 +49,8 @@ const CandlestickChart: React.FC<CandlestickChartProps> = ({ data, timeFrame, me
       .domain([yDomain[0] - yPadding, yDomain[1] + yPadding])
       .range([innerHeight, 0]);
 
-    // Modify y-axis to include "$" for specific metrics
     const yAxis = d3.axisLeft(y);
-    if (['fdv', 'marketCap', 'liquidity'].includes(metric)) {
+    if (['fdv_close', 'marketCap_close', 'liquidity_close'].includes(metric)) {
       yAxis.tickFormat(d => `$${d3.format(",.0f")(d)}`);
     }
 
@@ -51,28 +58,15 @@ const CandlestickChart: React.FC<CandlestickChartProps> = ({ data, timeFrame, me
       .attr("class", "y-axis")
       .call(yAxis);
 
-    // Adjust x-axis based on timeframe
-    const xAxis = d3.axisBottom(x);
-    const tickFormat = getTickFormat(timeFrame);
-    const tickValues = data.map(d => d.date); //DO NOT CHANGE THIS CONSTANT
+    const xAxis = d3.axisBottom(x)
+      .tickValues(ticks)
+      .tickFormat(getTickFormat(timeFrame) as any);
 
-    xAxis.tickFormat(tickFormat as any)
-         .tickValues(tickValues);
-
-    // Render x-axis with filtered ticks
     g.append("g")
       .attr("class", "x-axis")
       .attr("transform", `translate(0,${innerHeight})`)
-      .call(xAxis)
-      .call(g => g.selectAll(".tick")
-        .attr("display", function(this: SVGGElement, d: unknown) {
-          const date = new Date(d as Date);
-          const shouldShow = shouldShowTick(date, timeFrame);
-          console.log(`Date: ${date.toISOString()}, TimeFrame: ${timeFrame}, ShouldShow: ${shouldShow}, UTCHours: ${date.getUTCHours()}, UTCMinutes: ${date.getUTCMinutes()}`);
-          return shouldShow ? null : "none";
-        } as any));
+      .call(xAxis);
 
-    // Add x-axis label for UTC time
     g.append("text")
       .attr("class", "x-axis-label")
       .attr("text-anchor", "middle")
@@ -81,7 +75,6 @@ const CandlestickChart: React.FC<CandlestickChartProps> = ({ data, timeFrame, me
       .style("fill", textColor)
       .text("Time (UTC)");
 
-    // Add grid lines
     g.append("g")
       .attr("class", "grid")
       .attr("transform", `translate(0,${innerHeight})`)
@@ -98,20 +91,19 @@ const CandlestickChart: React.FC<CandlestickChartProps> = ({ data, timeFrame, me
     g.selectAll(".grid path")
       .style("stroke-width", 0);
 
-    // Calculate candlestick width
-    const candleWidth = (innerWidth / data.length) * 0.8; // 80% of available space
+    const candleWidth = xBand.bandwidth();
 
     const candlesticks = g.selectAll<SVGGElement, CandlestickData>(".candlestick")
       .data(data)
       .enter()
       .append("g")
       .attr("class", "candlestick")
-      .attr("transform", d => `translate(${x(d.date)},0)`);
+      .attr("transform", d => `translate(${xBand(d.date.getTime().toString())},0)`);
 
     candlesticks.append("line")
       .attr("class", "wick")
-      .attr("x1", 0)
-      .attr("x2", 0)
+      .attr("x1", candleWidth / 2)
+      .attr("x2", candleWidth / 2)
       .attr("y1", d => y(d.high))
       .attr("y2", d => y(d.low))
       .attr("stroke", d => d.open > d.close ? "red" : "green")
@@ -119,7 +111,7 @@ const CandlestickChart: React.FC<CandlestickChartProps> = ({ data, timeFrame, me
 
     candlesticks.append("rect")
       .attr("class", "body")
-      .attr("x", -candleWidth / 2)
+      .attr("x", 0)
       .attr("y", d => y(Math.max(d.open, d.close)))
       .attr("width", candleWidth)
       .attr("height", d => Math.max(1, Math.abs(y(d.open) - y(d.close))))
@@ -128,7 +120,42 @@ const CandlestickChart: React.FC<CandlestickChartProps> = ({ data, timeFrame, me
       .attr("stroke-width", 0.5);
   };
 
-  // Helper functions
+  const generateTicks = (data: CandlestickData[], timeFrame: string): Date[] => {
+    const interval = getTickInterval(timeFrame);
+    const firstDate = new Date(data[0].date);
+    const startOfDay = new Date(Date.UTC(firstDate.getUTCFullYear(), firstDate.getUTCMonth(), firstDate.getUTCDate()));
+    
+    return data.filter((d, index) => {
+      const timeSinceMidnight = d.date.getTime() - startOfDay.getTime();
+      const unitsSinceMidnight = timeSinceMidnight / getTimeframeMilliseconds(timeFrame);
+      return unitsSinceMidnight % interval === 0;
+    }).map(d => d.date);
+  };
+
+  const getTickInterval = (timeFrame: string): number => {
+    switch (timeFrame) {
+      case '15m': return 2;  // Every 30 minutes
+      case '1h': return 2;   // Every 2 hours
+      case '4h': return 2;   // Every 8 hours
+      case '1d': return 1;   // Every day
+      case '1w': return 1;   // Every week
+      case '1M': return 1;   // Every month
+      default: return 2;
+    }
+  };
+
+  const getTimeframeMilliseconds = (timeFrame: string): number => {
+    switch (timeFrame) {
+      case '15m': return 15 * 60 * 1000;
+      case '1h': return 60 * 60 * 1000;
+      case '4h': return 4 * 60 * 60 * 1000;
+      case '1d': return 24 * 60 * 60 * 1000;
+      case '1w': return 7 * 24 * 60 * 60 * 1000;
+      case '1M': return 30 * 24 * 60 * 60 * 1000; // Approximation
+      default: return 15 * 60 * 1000;
+    }
+  };
+
   const getTickFormat = (timeFrame: string): (d: Date | number) => string => {
     const formatTime = d3.utcFormat('%H:%M');
     const formatDate = d3.utcFormat('%b %d');
@@ -136,17 +163,17 @@ const CandlestickChart: React.FC<CandlestickChartProps> = ({ data, timeFrame, me
 
     return (d: Date | number) => {
       const date = new Date(d);
+      const hours = date.getUTCHours();
+      const minutes = date.getUTCMinutes();
+
       switch (timeFrame) {
         case '15m':
         case '1h':
         case '4h':
-          return date.getUTCHours() === 0 && date.getUTCMinutes() === 0 
-            ? formatDate(date) 
-            : formatTime(date);
+          return hours === 0 && minutes === 0 ? formatDate(date) : formatTime(date);
         case '1d':
-          return formatDate(date);
         case '1w':
-          return formatDate(d3.utcMonday(date));
+          return formatDate(date);
         case '1M':
           return formatMonthYear(date);
         default:
@@ -163,90 +190,37 @@ const CandlestickChart: React.FC<CandlestickChartProps> = ({ data, timeFrame, me
 
     switch (timeFrame) {
       case '15m':
-        // Show ticks at 00:00, 00:30, 01:00, 01:30, etc. UTC
-        return utcMinutes % 30 === 0;
+        return utcMinutes === 0 || utcMinutes === 30;
       case '1h':
-        // Show ticks at 00:00, 02:00, 04:00, etc. UTC
         return utcHours % 2 === 0 && utcMinutes === 0;
       case '4h':
-        // Show ticks at 00:00, 08:00, 16:00 UTC
-        return [0, 8, 16].includes(utcHours) && utcMinutes === 0;
+        return utcHours % 8 === 0 && utcMinutes === 0;
       case '1d':
-        // Show ticks every other day at 00:00 UTC
-        return utcHours === 0 && utcMinutes === 0 && utcDate % 2 === 0;
+        return utcHours === 0 && utcMinutes === 0;
       case '1w':
-        // Show ticks every other Monday at 00:00 UTC
-        return utcDay === 1 && utcHours === 0 && utcMinutes === 0 && (utcDate / 7) % 2 === 0;
+        return utcDay === 1 && utcHours === 0 && utcMinutes === 0; // Monday
       case '1M':
-        // Show ticks every other month on the 1st at 00:00 UTC
-        return utcDate === 1 && utcHours === 0 && utcMinutes === 0 && date.getUTCMonth() % 2 === 0;
+        return utcDate === 1 && utcHours === 0 && utcMinutes === 0; // First day of the month
       default:
         return true;
     }
   };
 
-  const getTickValues = (data: CandlestickData[], timeFrame: string): Date[] => {
-    const extent = d3.extent(data, d => d.date) as [Date, Date];
-    if (!extent[0] || !extent[1]) return [];
-    
-    const timeframeMs = getTimeframeMilliseconds(timeFrame);
-    const start = d3.timeMillisecond.offset(extent[0], -timeframeMs);
-    const end = d3.timeMillisecond.offset(extent[1], timeframeMs);
-    
-    let ticks: Date[];
-    switch (timeFrame) {
-      case '15m':
-        ticks = d3.timeMinute.every(60)?.range(start, end) || [];
-        break;
-      case '1h':
-        ticks = d3.timeHour.every(4)?.range(start, end) || [];
-        break;
-      case '4h':
-        ticks = d3.timeHour.every(8)?.range(start, end) || [];
-        break;
-      case '1d':
-        ticks = d3.timeDay.every(2)?.range(start, end) || [];
-        break;
-      case '1w':
-        ticks = d3.timeWeek.every(1)?.range(start, end) || [];
-        break;
-      case '1M':
-        ticks = d3.timeMonth.every(1)?.range(start, end) || [];
-        break;
-      default:
-        ticks = d3.timeDay.every(2)?.range(start, end) || [];
-    }
-    
-    // Further reduce ticks by keeping every 2nd tick
-    return ticks.filter((_, i) => i % 2 === 0);
-  };
+  const adjustTickValues = (data: CandlestickData[], timeFrame: string): Date[] => {
+    const dataLength = data.length;
+    let step: number;
 
-  const getCandleWidth = (chartWidth: number, dataLength: number, timeFrame: string): number => {
-    const baseWidth = chartWidth / dataLength;
-    switch (timeFrame) {
-      case '15m':
-      case '1h':
-      case '4h':
-        return baseWidth * 0.8; // Reduce width for shorter timeframes
-      case '1d':
-      case '1w':
-      case '1M':
-        return baseWidth * 0.9;
-      default:
-        return baseWidth * 0.9;
+    if (dataLength <= 10) {
+      step = 1;
+    } else if (dataLength <= 20) {
+      step = 2;
+    } else if (dataLength <= 40) {
+      step = 4;
+    } else {
+      step = Math.ceil(dataLength / 10);
     }
-  };
 
-  const getTimeframeMilliseconds = (timeFrame: string): number => {
-    switch (timeFrame) {
-      case '15m': return 15 * 60 * 1000;
-      case '1h': return 60 * 60 * 1000;
-      case '4h': return 4 * 60 * 60 * 1000;
-      case '1d': return 24 * 60 * 60 * 1000;
-      case '1w': return 7 * 24 * 60 * 60 * 1000;
-      case '1M': return 30 * 24 * 60 * 60 * 1000; // Approximation
-      default: return 24 * 60 * 60 * 1000;
-    }
+    return data.filter((_, index) => index % step === 0).map(d => d.date);
   };
 
   useEffect(() => {
@@ -269,7 +243,7 @@ const CandlestickChart: React.FC<CandlestickChartProps> = ({ data, timeFrame, me
   }, [data, renderChart]);
 
   return data.length > 0 ? (
-    <svg ref={svgRef}className="w-full h-full text-text-light dark:text-text-dark"></svg>
+    <svg ref={svgRef} className="w-full h-full text-text-light dark:text-text-dark"></svg>
   ) : (
     <div className="w-full h-full flex items-center justify-center text-text-light dark:text-text-dark">
       No data available for the selected time frame

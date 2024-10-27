@@ -7,6 +7,7 @@ import { MetricButton } from './MetricButton'
 import { SwappingFrame } from './SwappingFrame'
 import { useReadContract } from 'wagmi'
 import contractABI from '../../contractABI.json'
+import { ChartProps } from '../types'
 
 const TokenInfo: React.FC<TokenInfoProps> = ({
   isConnected,
@@ -19,8 +20,7 @@ const TokenInfo: React.FC<TokenInfoProps> = ({
   onRef
 }) => {
   const [tokenData, setTokenData] = useState<TokenData | null>(null)
-  const [historicalData, setHistoricalData] = useState<TokenData[]>([])
-  const [selectedMetric, setSelectedMetric] = useState<keyof Omit<TokenData, 'timestamp'>>('marketCap')
+  const [selectedMetric, setSelectedMetric] = useState<ChartProps['metric']>('marketCap_close')
   const [error, setError] = useState<string | null>(null)
 
   const { data: tranchesData } = useReadContract({
@@ -57,22 +57,6 @@ const TokenInfo: React.FC<TokenInfoProps> = ({
       }
 
       setTokenData(currentData)
-
-      // Fetch historical data
-      const historicalResponse = await fetch('/api/historical-token-data')
-      if (!historicalResponse.ok) throw new Error(`HTTP error! status: ${historicalResponse.status}`)
-      const historicalData: TokenData[] = await historicalResponse.json()
-
-      // Process historical data to include OHLC values
-      const processedHistoricalData = historicalData.map((data, index, array) => ({
-        ...data,
-        open: index > 0 ? array[index - 1].marketCap : data.marketCap,
-        high: Math.max(data.marketCap, index > 0 ? array[index - 1].marketCap : data.marketCap),
-        low: Math.min(data.marketCap, index > 0 ? array[index - 1].marketCap : data.marketCap),
-        close: data.marketCap
-      }))
-
-      setHistoricalData([...processedHistoricalData, currentData])
     } catch (error) {
       console.error('Error fetching token data:', error)
       setError(error instanceof Error ? error.message : 'An unknown error occurred')
@@ -82,6 +66,8 @@ const TokenInfo: React.FC<TokenInfoProps> = ({
   useEffect(() => {
     if (isConnected && contractAddress) {
       fetchTokenData()
+      const intervalId = setInterval(fetchTokenData, 60000) // Fetch every minute
+      return () => clearInterval(intervalId)
     }
   }, [isConnected, contractAddress, fetchTokenData])
 
@@ -106,15 +92,15 @@ const TokenInfo: React.FC<TokenInfoProps> = ({
             key={key}
             label={label}
             value={value}
-            selected={selectedMetric === key}
-            onClick={() => setSelectedMetric(key as keyof Omit<TokenData, 'timestamp'>)}
+            selected={selectedMetric === `${key}_close`}
+            onClick={() => setSelectedMetric(`${key}_close` as ChartProps['metric'])}
           />
         ))}
       </div>
       
       <div className="flex-grow flex mt-1 overflow-hidden bg-content-light dark:bg-content-dark rounded-lg">
         <div className="w-3/4 pr-1 h-full">
-          <ChartComponent data={historicalData} metric={selectedMetric} />
+          <ChartComponent metric={selectedMetric} />
         </div>
         <div className="w-1/4 pl-1 h-full overflow-auto">
           <SwappingFrame
