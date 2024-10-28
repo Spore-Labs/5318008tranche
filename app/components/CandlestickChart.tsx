@@ -160,25 +160,53 @@ const CandlestickChart: React.FC<CandlestickChartProps> = ({ data, timeFrame, me
     const utcDay = date.getUTCDay();
     const utcDate = date.getUTCDate();
 
-    // Show all ticks if there are 36 or fewer candles
-    if (dataLength <= 36) {
+    // Get container width to determine screen size
+    const containerWidth = svgRef.current?.clientWidth || 0;
+    const isXsScreen = containerWidth < 480; // Corresponds to 'xs' breakpoint
+    const isMobileOrSmall = containerWidth < 1440; // Corresponds to 'lg' breakpoint
+
+    // Show all ticks if there are very few candles
+    if (dataLength <= (isXsScreen ? 9 : isMobileOrSmall ? 18 : 36)) {
       return true;
     }
 
-    // For more than 36 candles, apply specific logic for each timeframe
+    // For more candles, apply specific logic for each timeframe
     switch (timeFrame) {
       case '15m':
-        // Show only :00 and :30 ticks
-        return utcMinutes === 0 || utcMinutes === 30;
+        if (isXsScreen) {
+          return utcHours % 2 === 0 && utcMinutes === 0; // Every 2 hours
+        }
+        if (isMobileOrSmall) {
+          return utcMinutes === 0; // Every hour
+        }
+        return utcMinutes === 0 || utcMinutes === 30; // Every 30 minutes
       case '1h':
       case '4h':
-        return utcHours % 2 === 0 && utcMinutes === 0;
+        if (isXsScreen) {
+          return utcHours % 6 === 0 && utcMinutes === 0; // Every 6 hours
+        }
+        if (isMobileOrSmall) {
+          return utcHours % 4 === 0 && utcMinutes === 0; // Every 4 hours
+        }
+        return utcHours % 2 === 0 && utcMinutes === 0; // Every 2 hours
       case '1d':
-        return true; // Show all daily ticks
+        if (isXsScreen) {
+          return utcDay % 3 === 0; // Every 3 days
+        }
+        if (isMobileOrSmall) {
+          return utcDay % 2 === 0; // Every 2 days
+        }
+        return true;
       case '1w':
-        return utcDay === 1; // Show only Mondays
+        if (isXsScreen) {
+          return utcDay === 1 && utcDate <= 7; // First Monday of month
+        }
+        return utcDay === 1; // Every Monday
       case '1M':
-        return utcDate === 1; // Show only the 1st of each month
+        if (isXsScreen) {
+          return utcDate === 1 && date.getUTCMonth() % 2 === 0; // First of every other month
+        }
+        return utcDate === 1; // First of every month
       default:
         return true;
     }

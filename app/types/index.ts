@@ -1,4 +1,5 @@
 import { Abi } from 'viem'
+import React from 'react'
 
 export interface TokenData {
   timestamp: string;
@@ -29,7 +30,7 @@ export interface ChartProps {
 
 export interface MetricButtonProps {
   label: string;
-  value: string | number;
+  value: string | number | React.ReactNode;
   selected: boolean;
   onClick: () => void;
 }

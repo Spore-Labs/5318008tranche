@@ -102,15 +102,14 @@ export const ChartComponent: React.FC<ChartProps> = ({ metric }) => {
           <button
             key={tf}
             onClick={() => handleTimeFrameChange(tf)}
-            className={`btn-chart ${
-              timeFrame === tf ? 'btn-chart-selected' : ''
-            } light dark:dark`}
+            className={`btn-chart text-xs xs:text-xs sm:text-sm ${timeFrame === tf ? 'selected' : ''}`}
+            disabled={timeFrame === tf}
           >
             {tf}
           </button>
         ))}
       </div>
-      <div className="flex-grow relative" style={{ height: 'calc(100% - 50px)', minHeight: '400px' }}>
+      <div className="flex-grow relative pb-[150px] xs:pb-[150px] sm:pb-[150px] md:pb-0" style={{ minHeight: '300px' }}>
         <CandlestickChart 
           data={filledChartData} 
           timeFrame={timeFrame} 

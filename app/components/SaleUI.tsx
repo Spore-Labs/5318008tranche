@@ -103,39 +103,39 @@ const SaleUI: React.FC<SaleUIProps> = ({ contractAddress, selectedTrancheIndex, 
   }
 
   return (
-    <div className={`mt-8 ${selectedTrancheIndex === null ? 'hidden' : ''}`}>
-      <div className="max-w-[250px] bg-primary-light dark:bg-primary-dark p-6 rounded-lg shadow-soft mx-auto border border-text-light dark:border-text-dark rounded-lg p-6">
-        <h2 className="text-2xl font-bold mb-4 text-center">Buy Tranche</h2>
-        <div className="flex flex-col space-y-4">
+    <div className="mt-4">
+      <div className="max-w-[250px] bg-primary-light dark:bg-primary-dark p-4 xs:p-4 sm:p-6 rounded-lg shadow-soft mx-auto border border-text-light dark:border-text-dark">
+        <h2 className="text-xl xs:text-xl sm:text-2xl font-bold mb-4 text-center">Buy Tranche</h2>
+        <div className="flex flex-col space-y-3">
           <div>
-            <label className="block text-sm font-medium text-text-light dark:text-text-dark mb-1">Tranche Index</label>
+            <label className="block text-xs xs:text-sm font-medium text-text-light dark:text-text-dark mb-1">Tranche Index</label>
             <input
               type="number"
               value={trancheIndex}
               onChange={(e) => setTrancheIndex(Number(e.target.value))}
-              className="w-full px-3 py-2 border border-primary-light dark:border-primary-dark text-text-light dark:text-text-dark rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-2 py-1 xs:px-3 xs:py-2 text-xs xs:text-sm border border-primary-light dark:border-primary-dark text-text-light dark:text-text-dark rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-text-light dark:text-text-dark mb-1">Max Price Difference (%)</label>
+            <label className="block text-xs xs:text-sm font-medium text-text-light dark:text-text-dark mb-1">Max Price Difference (%)</label>
             <input
               type="number"
               value={maxPriceDifference}
               onChange={(e) => setMaxPriceDifference(Number(e.target.value))}
-              className="w-full px-3 py-2 border border-primary-light dark:border-primary-dark text-text-light dark:text-text-dark rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-2 py-1 xs:px-3 xs:py-2 text-xs xs:text-sm border border-primary-light dark:border-primary-dark text-text-light dark:text-text-dark rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-text-light dark:text-text-dark mb-1">Amount (ETH)</label>
+            <label className="block text-xs xs:text-sm font-medium text-text-light dark:text-text-dark mb-1">Amount (ETH)</label>
             <input
               type="text"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full px-3 py-2 border border-primary-light dark:border-primary-dark text-text-light dark:text-text-dark rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-2 py-1 xs:px-3 xs:py-2 text-xs xs:text-sm border border-primary-light dark:border-primary-dark text-text-light dark:text-text-dark rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
           <button
-            className={`btn-primary dark:btn-secondary w-full mt-4 ${!isConnected || isPending || isConfirming ? 'opacity-50' : ''}`}
+            className={`btn btn-responsive w-full mt-2 text-xs xs:text-sm ${!isConnected || isPending || isConfirming ? 'opacity-50' : ''}`}
             disabled={!isConnected || isPending || isConfirming}
             onClick={handleBuyTranche}
           >
@@ -143,7 +143,7 @@ const SaleUI: React.FC<SaleUIProps> = ({ contractAddress, selectedTrancheIndex, 
           </button>
         </div>
         {!isConnected && (
-          <div className="text-sm text-red-500 mt-2 text-center">
+          <div className="text-xs xs:text-sm text-red-500 mt-2 text-center">
             Wallet not connected or in the wrong network
           </div>
         )}

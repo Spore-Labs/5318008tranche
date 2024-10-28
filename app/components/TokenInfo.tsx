@@ -77,8 +77,26 @@ const TokenInfo: React.FC<TokenInfoProps> = ({
   const formatNumber = (num: number) => num.toLocaleString(undefined, { maximumFractionDigits: 0 })
 
   const metrics = [
-    { key: 'total', label: 'Total Supply', value: `${formatNumber(tokenData.total)} $BOOB` },
-    { key: 'circulating', label: 'Circulating Supply', value: `${formatNumber(tokenData.circulating)} $BOOB` },
+    { 
+      key: 'total', 
+      label: 'Total Supply', 
+      value: (
+        <>
+          <span className="block xs:hidden">{formatNumber(tokenData.total)}</span>
+          <span className="hidden xs:block">{`${formatNumber(tokenData.total)} $BOOB`}</span>
+        </>
+      )
+    },
+    { 
+      key: 'circulating', 
+      label: 'Circulating Supply', 
+      value: (
+        <>
+          <span className="block xs:hidden">{formatNumber(tokenData.circulating)}</span>
+          <span className="hidden xs:block">{`${formatNumber(tokenData.circulating)} $BOOB`}</span>
+        </>
+      )
+    },
     { key: 'fdv', label: 'FDV', value: `$${formatNumber(tokenData.fdv)}` },
     { key: 'marketCap', label: 'Market Cap', value: `$${formatNumber(tokenData.marketCap)}` },
     { key: 'liquidity', label: 'Liquidity', value: `$${formatNumber(tokenData.liquidity)}` }
@@ -86,6 +104,7 @@ const TokenInfo: React.FC<TokenInfoProps> = ({
 
   return (
     <div className="flex flex-col h-full bg-content-light dark:bg-content-dark text-white">
+      {/* Metrics Bar */}
       <div className="text-xs grid grid-cols-5 gap-1 bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark p-1 shadow-soft border border-primary-light dark:border-primary-dark rounded-lg">
         {metrics.map(({ key, label, value }) => (
           <MetricButton
@@ -98,11 +117,28 @@ const TokenInfo: React.FC<TokenInfoProps> = ({
         ))}
       </div>
       
-      <div className="flex-grow flex mt-1 overflow-hidden bg-content-light dark:bg-content-dark rounded-lg">
-        <div className="w-3/4 pr-1 h-full">
+      {/* Main Content Area */}
+      <div className="flex-grow flex flex-col md:flex-row mt-1 overflow-hidden bg-content-light dark:bg-content-dark rounded-lg relative">
+        {/* Chart Section */}
+        <div className="w-full md:w-3/4 md:pr-1 h-full">
           <ChartComponent metric={selectedMetric} />
         </div>
-        <div className="w-1/4 pl-1 h-full overflow-auto">
+
+        {/* SwappingFrame - Desktop */}
+        <div className="hidden md:block w-1/4 md:pl-1 h-full overflow-auto">
+          <SwappingFrame
+            availableTranches={availableTranches}
+            trancheSupply={trancheSupply}
+            trancheSold={trancheSold}
+            priceDifference={priceDifference || []}
+            contractAddress={contractAddress as `0x${string}`}
+            onBuyTranche={onBuyTranche}
+            onRef={onRef}
+          />
+        </div>
+
+        {/* SwappingFrame - Mobile */}
+        <div className="block md:hidden fixed bottom-16 left-0 right-0 z-50">
           <SwappingFrame
             availableTranches={availableTranches}
             trancheSupply={trancheSupply}
