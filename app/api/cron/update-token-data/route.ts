@@ -1,6 +1,30 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '../../../../lib/mongodb';
 import TokenData from '../../../../models/TokenData';
+import { SignJWT } from 'jose';
+import { createPrivateKey } from 'crypto';
+
+const PRIVATE_KEY = process.env.JWT_PRIVATE_KEY;
+const JWT_KEY_NAME = process.env.JWT_KEY_NAME;
+
+if (!PRIVATE_KEY || !JWT_KEY_NAME) {
+  throw new Error('Missing JWT configuration in environment variables');
+}
+
+const createInfuraJWT = async () => {
+  const privateKey = createPrivateKey({
+    key: PRIVATE_KEY,
+    format: 'pem',
+  });
+
+  const jwt = await new SignJWT({})
+    .setProtectedHeader({ alg: 'ES256', kid: JWT_KEY_NAME })
+    .setIssuedAt()
+    .setExpirationTime('1h')
+    .sign(privateKey);
+
+  return jwt;
+};
 
 export async function POST(request: Request) {
   // Verify that the request is coming from GitHub Actions
