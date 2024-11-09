@@ -102,6 +102,7 @@ export interface TrancheButtonProps {
   sold: bigint;
   priceDifference: bigint;
   isSelected: boolean;
+  contractAddress: `0x${string}`;
 }
 
 export interface AggregatedTokenData {

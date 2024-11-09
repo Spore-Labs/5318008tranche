@@ -45,6 +45,7 @@ export const SwappingFrame: React.FC<SwappingFrameProps> = ({
             sold={trancheSold[index]}
             priceDifference={priceDifference[index]}
             isSelected={selectedTrancheIndex === index}
+            contractAddress={contractAddress}
           />
         ))}
       </div>
