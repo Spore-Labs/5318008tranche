@@ -183,12 +183,12 @@ const CandlestickChart: React.FC<CandlestickChartProps> = ({ data, timeFrame, me
       case '1h':
       case '4h':
         if (isXsScreen) {
-          return utcHours % 12 === 0 && utcMinutes === 0; // Every 12 hours
+          return utcHours % 24 === 0 && utcMinutes === 0; // Every 24 hours
         }
         if (isMobileOrSmall) {
-          return utcHours % 8 === 0 && utcMinutes === 0; // Every 8 hours
+          return utcHours % 12 === 0 && utcMinutes === 0; // Every 12 hours
         }
-        return utcHours % 4 === 0 && utcMinutes === 0; // Every 4 hours
+        return utcHours % 8 === 0 && utcMinutes === 0; // Every 8 hours
       case '1d':
         if (isXsScreen) {
           return utcDay % 3 === 0; // Every 3 days
