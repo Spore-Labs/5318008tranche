@@ -13,21 +13,18 @@ export const SwappingFrame: React.FC<SwappingFrameProps> = ({
   onRef,
 }) => {
   const [selectedTrancheIndex, setSelectedTrancheIndex] = useState<number | null>(null);
-  const [selectedMaxPriceDifference, setSelectedMaxPriceDifference] = useState<number | null>(null);
+  const [isSaleUIOpen, setIsSaleUIOpen] = useState(false);
 
   const handleTrancheClick = (index: number) => {
     if (selectedTrancheIndex === index) {
       setSelectedTrancheIndex(null);
-      setSelectedMaxPriceDifference(null);
+      setIsSaleUIOpen(false);
     } else {
       setSelectedTrancheIndex(index);
-      setSelectedMaxPriceDifference(Number(priceDifference[index]) + 500);
+      setIsSaleUIOpen(true);
       onBuyTranche(index);
     }
   };
-
-  // Count available tranches for mobile sizing
-  const availableCount = availableTranches.filter(isAvailable => isAvailable).length;
 
   return (
     <div className={`
@@ -36,7 +33,6 @@ export const SwappingFrame: React.FC<SwappingFrameProps> = ({
       border border-primary-light dark:border-primary-dark 
       rounded-lg p-2 text-xs overflow-y-auto space-y-2 
       transition-all duration-300 ease-in-out
-      ${selectedTrancheIndex !== null ? 'xs:min-h-[500px] sm:min-h-[500px]' : ''}
     `}>
       <div className="flex flex-col space-y-2">
         {availableTranches.map((isAvailable, index) => (
@@ -52,17 +48,17 @@ export const SwappingFrame: React.FC<SwappingFrameProps> = ({
           />
         ))}
       </div>
-      <div className={`
-        transition-all duration-300 ease-in-out
-        ${selectedTrancheIndex === null ? 'h-0 opacity-0' : 'opacity-100'}
-      `}>
-        <SaleUI
-          contractAddress={contractAddress}
-          selectedTrancheIndex={selectedTrancheIndex}
-          selectedMaxPriceDifference={selectedMaxPriceDifference}
-          onRef={onRef}
-        />
-      </div>
+      <SaleUI
+        contractAddress={contractAddress}
+        selectedTrancheIndex={selectedTrancheIndex}
+        selectedMaxPriceDifference={selectedTrancheIndex !== null && priceDifference ? Number(priceDifference[selectedTrancheIndex]) : null}
+        onRef={onRef}
+        isOpen={isSaleUIOpen}
+        onClose={() => {
+          setIsSaleUIOpen(false);
+          setSelectedTrancheIndex(null);
+        }}
+      />
     </div>
   );
 };

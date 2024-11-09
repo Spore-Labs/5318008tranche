@@ -1,10 +1,10 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { useAccount, useWriteContract, useWaitForTransactionReceipt, useChainId, useConfig } from 'wagmi'
+import { useAccount, useWriteContract, useWaitForTransactionReceipt, useChainId, useConfig, useReadContract } from 'wagmi'
 import { toast } from 'react-hot-toast'
-import { TransactionReceipt } from 'viem'
 import { SaleUIProps } from '../types'
+import Modal from './Modal'
 
 const trancheBuyABI = [
   {
@@ -16,43 +16,77 @@ const trancheBuyABI = [
     outputs: [],
     stateMutability: 'payable',
     type: 'function'
+  },
+  {
+    inputs: [],
+    name: 'getBoobsPriceInETH',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function'
+  },
+  {
+    inputs: [],
+    name: 'totalSupply',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function'
+  },
+  {
+    inputs: [],
+    name: 'getETHPriceFromUniswap',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function'
+  },
+  {
+    inputs: [
+      { internalType: 'uint256', name: 'ethPrice', type: 'uint256' }
+    ],
+    name: 'getBoobsPriceInUSD',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function'
   }
 ]
 
-const SaleUI: React.FC<SaleUIProps> = ({ contractAddress, selectedTrancheIndex, selectedMaxPriceDifference, onRef }) => {
+const SaleUI: React.FC<SaleUIProps> = ({ contractAddress, selectedTrancheIndex, selectedMaxPriceDifference, onRef, isOpen, onClose }) => {
   const [trancheIndex, setTrancheIndex] = useState<number>(0)
-  const [maxPriceDifference, setMaxPriceDifference] = useState<number>(200)
+  const [slippage, setSlippage] = useState<number>(2)
   const [amount, setAmount] = useState<string>('0.1')
   const { isConnected, address: account } = useAccount()
   const chainId = useChainId()
   const config = useConfig()
 
+  const { data: currentPrice, isError, error } = useReadContract({
+    address: contractAddress,
+    abi: trancheBuyABI,
+    functionName: 'getBoobsPriceInETH',
+  })
+
+  const { data: ethPrice } = useReadContract({
+    address: contractAddress,
+    abi: trancheBuyABI,
+    functionName: 'getETHPriceFromUniswap',
+  })
+
+  const { data: usdPrice } = useReadContract({
+    address: contractAddress,
+    abi: trancheBuyABI,
+    functionName: 'getBoobsPriceInUSD',
+    args: [ethPrice || BigInt(0)],
+  })
+
+  const { data: totalSupply } = useReadContract({
+    address: contractAddress,
+    abi: trancheBuyABI,
+    functionName: 'totalSupply',
+  })
+
   const { writeContract, data: hash, isPending } = useWriteContract()
 
-  const { isLoading: isConfirming, isSuccess: isConfirmed, data: txResult } =
-    useWaitForTransactionReceipt({
-      hash,
-    })
-
-  // Ensure txResult is a TransactionReceipt
-  const transactionReceipt: TransactionReceipt | undefined = txResult
-    ? {
-        blockHash: txResult.blockHash,
-        blockNumber: txResult.blockNumber,
-        contractAddress: txResult.contractAddress,
-        cumulativeGasUsed: txResult.cumulativeGasUsed,
-        effectiveGasPrice: txResult.effectiveGasPrice,
-        from: txResult.from,
-        gasUsed: txResult.gasUsed,
-        logs: txResult.logs,
-        logsBloom: txResult.logsBloom,
-        status: txResult.status,
-        to: txResult.to,
-        transactionHash: txResult.transactionHash,
-        transactionIndex: txResult.transactionIndex,
-        type: txResult.type,
-      }
-    : undefined
+  const { isLoading: isConfirming } = useWaitForTransactionReceipt({
+    hash,
+  })
 
   useEffect(() => {
     if (selectedTrancheIndex !== null) {
@@ -61,22 +95,30 @@ const SaleUI: React.FC<SaleUIProps> = ({ contractAddress, selectedTrancheIndex, 
   }, [selectedTrancheIndex])
 
   useEffect(() => {
-    if (selectedMaxPriceDifference !== null) {
-      setMaxPriceDifference(selectedMaxPriceDifference)
-    }
-  }, [selectedMaxPriceDifference])
-
-  useEffect(() => {
     onRef({
       updateTrancheIndex: setTrancheIndex,
-      updateMaxPriceDifference: setMaxPriceDifference,
+      updateMaxPriceDifference: () => {}
     })
     return () => onRef(null)
   }, [onRef])
 
+  useEffect(() => {
+    if (isError) {
+      console.error('Price fetch error:', error)
+    }
+  }, [contractAddress, currentPrice, isError, error])
+
+  const estimatedTokens = currentPrice && amount
+    ? (parseFloat(amount) * 1e18) / Number(currentPrice)
+    : 0
+
+  const percentageOfSupply = totalSupply && estimatedTokens
+    ? (estimatedTokens / (Number(totalSupply) / 1e18)) * 100
+    : 0
+
   const handleBuyTranche = async () => {
-    if (!isConnected) {
-      toast.error('Please connect your wallet first')
+    if (!isConnected || !currentPrice || selectedMaxPriceDifference === null) {
+      toast.error('Please connect your wallet first or wait for price data')
       return
     }
 
@@ -87,11 +129,29 @@ const SaleUI: React.FC<SaleUIProps> = ({ contractAddress, selectedTrancheIndex, 
     }
 
     try {
+      // Calculate total price difference with slippage
+      // Formula: ((contractPriceDifference + 10000) * (1 + slippage/100)) - 10000
+      const totalPriceDifference = Math.round(
+        ((selectedMaxPriceDifference + 10000) * (1 + slippage / 100)) - 10000
+      )
+
+      // Log all relevant values
+      console.log('Buy Tranche Parameters:', {
+        trancheIndex,
+        contractPriceDifference: selectedMaxPriceDifference,
+        slippageMultiplier: 1 + slippage / 100,
+        totalPriceDifference,
+        amount: parseFloat(amount),
+        valueInWei: BigInt(parseFloat(amount) * 1e18).toString(),
+        contractAddress,
+        account
+      })
+
       writeContract({
         address: contractAddress,
         abi: trancheBuyABI,
         functionName: 'buyTranche',
-        args: [BigInt(trancheIndex), BigInt(maxPriceDifference)],
+        args: [BigInt(trancheIndex), BigInt(totalPriceDifference)],
         value: BigInt(parseFloat(amount) * 1e18),
         account: account as `0x${string}`,
         chain,
@@ -102,53 +162,63 @@ const SaleUI: React.FC<SaleUIProps> = ({ contractAddress, selectedTrancheIndex, 
     }
   }
 
+  const priceDisplay = () => {
+    if (isError) return 'Error fetching price'
+    if (!currentPrice || !usdPrice || !ethPrice) return 'Loading...'
+    
+    const ethValue = (Number(currentPrice) / 1e18).toFixed(8)
+    const usdValue = (Number(usdPrice) / 1e18).toFixed(2)
+    
+    return `${ethValue} ETH ($${usdValue})`
+  }
+
   return (
-    <div className="mt-4">
-      <div className="max-w-[250px] bg-primary-light dark:bg-primary-dark p-4 xs:p-4 sm:p-6 rounded-lg shadow-soft mx-auto border border-text-light dark:border-text-dark">
-        <h2 className="text-xl xs:text-xl sm:text-2xl font-bold mb-4 text-center">Buy Tranche</h2>
-        <div className="flex flex-col space-y-3">
-          <div>
-            <label className="block text-xs xs:text-sm font-medium text-text-light dark:text-text-dark mb-1">Tranche Index</label>
-            <input
-              type="number"
-              value={trancheIndex}
-              onChange={(e) => setTrancheIndex(Number(e.target.value))}
-              className="w-full px-2 py-1 xs:px-3 xs:py-2 text-xs xs:text-sm border border-primary-light dark:border-primary-dark text-text-light dark:text-text-dark rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
+    <Modal isOpen={isOpen} onClose={onClose}>
+      <div className="p-6">
+        <h2 className="text-xl xs:text-xl sm:text-2xl font-bold mb-4 text-center">Buy Tranche {trancheIndex}</h2>
+        <div className="flex flex-col space-y-4">
+          <div className="bg-background-light dark:bg-background-dark p-3 rounded-lg">
+            <p className="text-sm mb-1">Current Price: {priceDisplay()}</p>
+            <p className="text-sm mb-1">Estimated Tokens: {estimatedTokens.toFixed(2)}</p>
+            <p className="text-sm">% of Total Supply: {percentageOfSupply.toFixed(4)}%</p>
           </div>
+          
           <div>
-            <label className="block text-xs xs:text-sm font-medium text-text-light dark:text-text-dark mb-1">Max Price Difference (%)</label>
-            <input
-              type="number"
-              value={maxPriceDifference}
-              onChange={(e) => setMaxPriceDifference(Number(e.target.value))}
-              className="w-full px-2 py-1 xs:px-3 xs:py-2 text-xs xs:text-sm border border-primary-light dark:border-primary-dark text-text-light dark:text-text-dark rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-          <div>
-            <label className="block text-xs xs:text-sm font-medium text-text-light dark:text-text-dark mb-1">Amount (ETH)</label>
+            <label className="block text-xs xs:text-sm font-medium mb-1">Amount (ETH)</label>
             <input
               type="text"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full px-2 py-1 xs:px-3 xs:py-2 text-xs xs:text-sm border border-primary-light dark:border-primary-dark text-text-light dark:text-text-dark rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2"
             />
           </div>
+          
+          <div>
+            <label className="block text-xs xs:text-sm font-medium mb-1">Slippage Tolerance (%)</label>
+            <input
+              type="number"
+              value={slippage}
+              onChange={(e) => setSlippage(Number(e.target.value))}
+              className="w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2"
+            />
+          </div>
+
           <button
-            className={`btn btn-responsive w-full mt-2 text-xs xs:text-sm ${!isConnected || isPending || isConfirming ? 'opacity-50' : ''}`}
+            className={`btn btn-responsive w-full mt-2 ${!isConnected || isPending || isConfirming ? 'opacity-50' : ''}`}
             disabled={!isConnected || isPending || isConfirming}
             onClick={handleBuyTranche}
           >
             {(isPending || isConfirming) ? 'Processing...' : 'Buy Tranche 💸'}
           </button>
         </div>
+
         {!isConnected && (
-          <div className="text-xs xs:text-sm text-red-500 mt-2 text-center">
+          <div className="text-sm text-red-500 mt-4 text-center">
             Wallet not connected or in the wrong network
           </div>
         )}
       </div>
-    </div>
+    </Modal>
   )
 }
 

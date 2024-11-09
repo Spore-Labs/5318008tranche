@@ -40,6 +40,8 @@ export interface SaleUIProps {
   selectedTrancheIndex: number | null;
   selectedMaxPriceDifference: number | null;
   onRef: (ref: { updateTrancheIndex: (index: number) => void, updateMaxPriceDifference: (diff: number) => void } | null) => void;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 export type PriceDifferenceContract = {
