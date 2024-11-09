@@ -4,10 +4,17 @@ import type { NextRequest } from 'next/server'
 export function middleware(request: NextRequest) {
   const response = NextResponse.next()
 
-  // Add CSP headers
+  // Add CSP headers with updated frame-ancestors
   response.headers.set(
     'Content-Security-Policy',
     `
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' 'unsafe-eval';
+      style-src 'self' 'unsafe-inline';
+      img-src 'self' data: https: blob:;
+      font-src 'self';
+      connect-src *;
+      frame-src 'self' https://*.walletconnect.org https://*.walletconnect.com;
       frame-ancestors 
         'self' 
         http://localhost:* 
@@ -17,13 +24,9 @@ export function middleware(request: NextRequest) {
         https://secure-mobile.walletconnect.com 
         https://secure-mobile.walletconnect.org 
         https://secure.walletconnect.org;
+      media-src 'none';
     `.replace(/\s+/g, ' ').trim()
   )
-
-  // Add other security headers
-  response.headers.set('X-Frame-Options', 'SAMEORIGIN')
-  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
-  response.headers.set('X-Content-Type-Options', 'nosniff')
 
   return response
 }

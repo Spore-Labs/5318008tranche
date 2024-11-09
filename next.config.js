@@ -7,7 +7,25 @@ const nextConfig = {
           headers: [
             {
               key: 'Content-Security-Policy',
-              value: `frame-ancestors 'self' http://localhost:* https://*.pages.dev https://*.vercel.app https://*.ngrok-free.app https://secure-mobile.walletconnect.com https://secure-mobile.walletconnect.org https://secure.walletconnect.org;`,
+              value: `
+                default-src 'self';
+                script-src 'self' 'unsafe-inline' 'unsafe-eval';
+                style-src 'self' 'unsafe-inline';
+                img-src 'self' data: https: blob:;
+                font-src 'self';
+                connect-src *;
+                frame-src 'self' https://*.walletconnect.org https://*.walletconnect.com;
+                frame-ancestors 
+                  'self' 
+                  http://localhost:* 
+                  https://*.pages.dev 
+                  https://*.vercel.app 
+                  https://*.ngrok-free.app 
+                  https://secure-mobile.walletconnect.com 
+                  https://secure-mobile.walletconnect.org 
+                  https://secure.walletconnect.org;
+                media-src 'none';
+              `.replace(/\s+/g, ' ').trim(),
             },
           ],
         },
