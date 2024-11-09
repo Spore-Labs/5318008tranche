@@ -24,7 +24,7 @@ const Footer: React.FC = () => {
             <span className="ml-2 font-technology text-3xl text-text-light dark:text-text-dark">5318008</span>
           </Link>
         </div>
-        <div className="text-center text-text-light dark:text-text-dark hidden md:block">
+        <div className="text-center text-text-light dark:text-text-dark hidden md:block font-technology">
           Flip your screen upside down, {randomWord}.
         </div>
         <div className="w-full xs:w-auto sm:w-auto md:w-auto">
