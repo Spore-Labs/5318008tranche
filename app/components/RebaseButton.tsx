@@ -69,7 +69,7 @@ const RebaseButton: React.FC = () => {
         onClick={handleRebase}
         disabled={!isConnected || isRebaseConfirming || !canRebase}
       >
-        {isRebaseConfirming ? 'Rebasing...' : canRebase ? 'Rebase' : `Rebase available in: ${blocksUntilRebase} blocks`}
+        {isRebaseConfirming ? 'Rebasing...' : canRebase ? 'Click me for Boobies!' : `Rebase available in: ${blocksUntilRebase} blocks`}
       </button>
     </div>
   )
