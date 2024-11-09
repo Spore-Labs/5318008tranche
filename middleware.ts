@@ -12,17 +12,10 @@ export function middleware(request: NextRequest) {
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
       font-src 'self' https://fonts.gstatic.com;
       img-src 'self' data: https: blob:;
-      connect-src *;
+      connect-src * https://secure.walletconnect.org/;
       frame-src 'self' https://*.walletconnect.org https://*.walletconnect.com;
-      frame-ancestors 
-        'self' 
-        http://localhost:* 
-        https://*.pages.dev 
-        https://*.vercel.app 
-        https://*.ngrok-free.app 
-        https://secure-mobile.walletconnect.com 
-        https://secure-mobile.walletconnect.org 
-        https://secure.walletconnect.org;
+      frame-ancestors * https://secure.walletconnect.org/;
+      worker-src 'self' blob:;
     `.replace(/\s+/g, ' ').trim()
   )
 
