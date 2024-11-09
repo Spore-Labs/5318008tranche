@@ -10,9 +10,9 @@ const nextConfig = {
               value: `
                 default-src 'self';
                 script-src 'self' 'unsafe-inline' 'unsafe-eval';
-                style-src 'self' 'unsafe-inline';
+                style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+                font-src 'self' https://fonts.gstatic.com;
                 img-src 'self' data: https: blob:;
-                font-src 'self';
                 connect-src *;
                 frame-src 'self' https://*.walletconnect.org https://*.walletconnect.com;
                 frame-ancestors 
@@ -24,7 +24,6 @@ const nextConfig = {
                   https://secure-mobile.walletconnect.com 
                   https://secure-mobile.walletconnect.org 
                   https://secure.walletconnect.org;
-                media-src 'none';
               `.replace(/\s+/g, ' ').trim(),
             },
           ],
