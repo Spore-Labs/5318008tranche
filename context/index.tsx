@@ -4,7 +4,7 @@ import { wagmiAdapter, projectId } from '../config'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createAppKit } from '@reown/appkit/react'
 import { mainnet, sepolia } from '@reown/appkit/networks'
-import React, { type ReactNode } from 'react'
+import React, { type ReactNode, useEffect } from 'react'
 import { cookieToInitialState, WagmiProvider, type Config } from 'wagmi'
 
 // Set up queryClient
@@ -34,12 +34,29 @@ const modal = createAppKit({
   },
   themeMode: 'light', // You can change this to 'dark' if you prefer
   themeVariables: {
-    '--w3m-accent': '#a7488f', // Your secondary color
+    '--w3m-accent': '#a7488f',
   }
 })
 
 function ContextProvider({ children, cookies }: { children: ReactNode; cookies: string | null }) {
   const initialState = cookieToInitialState(wagmiAdapter.wagmiConfig as Config, cookies)
+
+  useEffect(() => {
+    const unsubscribe = wagmiAdapter.wagmiConfig.subscribe(
+      (state) => state.status,
+      (status) => {
+        if (status === 'connected') {
+          queryClient.invalidateQueries()
+        } else if (status === 'disconnected') {
+          queryClient.clear()
+        }
+      }
+    )
+
+    return () => {
+      unsubscribe?.()
+    }
+  }, [])
 
   return (
     <WagmiProvider config={wagmiAdapter.wagmiConfig as Config} initialState={initialState}>
