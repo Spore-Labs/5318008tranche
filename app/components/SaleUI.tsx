@@ -181,8 +181,6 @@ const SaleUI: React.FC<SaleUIProps> = ({ contractAddress, selectedTrancheIndex, 
         <div className="flex flex-col space-y-4">
           <div className="bg-primary-light dark:bg-primary-dark p-3 rounded-lg border border-primary-light dark:border-primary-dark">
             <p className="text-sm mb-1 text-text-light dark:text-text-dark">Current Price: {priceDisplay()}</p>
-          </div>
-          <div className="bg-content-light dark:bg-content-dark p-3 rounded-lg border border-primary-light dark:border-primary-dark">
             <p className="text-sm mb-1 text-text-light dark:text-text-dark">Estimated Tokens: {estimatedTokens.toFixed(2)}</p>
             <p className="text-sm text-text-light dark:text-text-dark">% of Total Supply: {percentageOfSupply.toFixed(4)}%</p>
           </div>
@@ -196,7 +194,7 @@ const SaleUI: React.FC<SaleUIProps> = ({ contractAddress, selectedTrancheIndex, 
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               className="w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 
-                bg-background-light dark:bg-background-dark 
+                bg-content-light dark:bg-content-dark 
                 text-text-light dark:text-text-dark
                 border-primary-light dark:border-primary-dark
                 focus:ring-secondary-light dark:focus:ring-secondary-dark"
@@ -212,7 +210,7 @@ const SaleUI: React.FC<SaleUIProps> = ({ contractAddress, selectedTrancheIndex, 
               value={slippage}
               onChange={(e) => setSlippage(Number(e.target.value))}
               className="w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2
-                bg-background-light dark:bg-background-dark 
+                bg-content-light dark:bg-content-dark 
                 text-text-light dark:text-text-dark
                 border-primary-light dark:border-primary-dark
                 focus:ring-secondary-light dark:focus:ring-secondary-dark"

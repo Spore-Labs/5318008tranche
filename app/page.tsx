@@ -115,7 +115,7 @@ export default function Home() {
   }
 
   return (
-    <main className="flex flex-col h-full bg-content-light dark:bg-content-dark text-text-light dark:text-text-dark">
+    <div className="h-full bg-content-light dark:bg-content-dark text-text-light dark:text-text-dark">
       <TokenInfo
         isConnected={isConnected}
         contractAddress={contractAddress}
@@ -131,6 +131,6 @@ export default function Home() {
         }}
         onRef={memoizedOnRef}
       />
-    </main>
+    </div>
   )
 }

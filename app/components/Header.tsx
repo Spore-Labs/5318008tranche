@@ -14,7 +14,7 @@ const Header: React.FC = () => {
       text-text-light dark:text-text-dark 
       shadow-soft border-b border-primary-light dark:border-primary-dark 
       p-4 md:p-4
-      fixed md:relative top-0 w-full z-50
+      fixed xs:relative top-0 w-full z-50
     ">
       <div className="container mx-auto flex justify-between items-center">
         <div className="flex items-center">

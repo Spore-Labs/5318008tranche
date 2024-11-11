@@ -6,6 +6,9 @@ import ContextProvider from '../context'
 import Footer from './components/Footer'
 import Header from './components/Header'
 import { Providers } from './providers'
+import { Inter } from 'next/font/google'
+
+const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: '5318008 Dashboard',
@@ -34,12 +37,12 @@ export default async function RootLayout({
   const cookies = headersList.get('cookie')
 
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className="flex flex-col min-h-screen bg-content-light dark:bg-content-dark text-text-light dark:text-text-dark">
+    <html lang="en" className="h-full" suppressHydrationWarning>
+      <body className={`${inter.className} h-full flex flex-col`} suppressHydrationWarning>
         <Providers>
           <ContextProvider cookies={cookies}>
             <Header />
-            <main className="flex-grow bg-content-light dark:bg-content-dark p-2 xs:p-4 overflow-y-auto mt-[48px] xs:mt-[72px] md:mt-0 mb-[48px] xs:mb-[72px]">
+            <main className="flex-1 overflow-y-auto py-4 px-2">
               <div className="container mx-auto h-full">
                 {children}
               </div>

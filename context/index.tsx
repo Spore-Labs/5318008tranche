@@ -6,6 +6,7 @@ import { createAppKit } from '@reown/appkit/react'
 import { mainnet, sepolia } from '@reown/appkit/networks'
 import React, { type ReactNode, useEffect } from 'react'
 import { cookieToInitialState, WagmiProvider, type Config } from 'wagmi'
+import { ThemeProvider } from 'next-themes'
 
 // Set up queryClient
 const queryClient = new QueryClient()
@@ -60,7 +61,11 @@ function ContextProvider({ children, cookies }: { children: ReactNode; cookies: 
 
   return (
     <WagmiProvider config={wagmiAdapter.wagmiConfig as Config} initialState={initialState}>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {children}
+        </ThemeProvider>
+      </QueryClientProvider>
     </WagmiProvider>
   )
 }

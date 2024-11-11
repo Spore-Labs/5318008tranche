@@ -96,7 +96,7 @@ export const ChartComponent: React.FC<ChartProps> = ({ metric }) => {
   }
 
   return (
-    <div className="hidden md:flex w-full h-full flex-col">
+    <div className="w-full h-full flex flex-col">
       <div className="flex gap-1 mb-1">
         {timeFrames.map(tf => (
           <button
@@ -109,8 +109,8 @@ export const ChartComponent: React.FC<ChartProps> = ({ metric }) => {
           </button>
         ))}
       </div>
-      <div className="flex-grow relative" style={{ minHeight: '300px' }}>
-        <CandlestickChart 
+      <div className="flex-grow relative pb-[150px] xs:pb-[150px] sm:pb-[150px] md:pb-0" style={{ minHeight: '300px' }}>
+        <CandlestickChart
           data={filledChartData} 
           timeFrame={timeFrame} 
           metric={metric}

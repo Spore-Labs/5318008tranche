@@ -85,6 +85,7 @@ const TrancheButton: React.FC<TrancheButtonProps> = ({
         ${buttonClass} 
         ${(!isAvailable || isSoldOut) ? 'opacity-50' : ''} 
         ${isSoldOut ? 'hidden md:block' : ''}
+        ${!isAvailable ? 'hidden md:block' : ''}
       `} 
       onClick={onBuy}
       disabled={!isAvailable || isSoldOut}

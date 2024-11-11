@@ -120,7 +120,7 @@ const TokenInfo: React.FC<TokenInfoProps> = ({
       {/* Main Content Area */}
       <div className="flex-grow flex flex-col md:flex-row mt-1 overflow-hidden bg-content-light dark:bg-content-dark rounded-lg relative">
         {/* Chart Section */}
-        <div className="hidden md:block w-full md:w-3/4 md:pr-1 h-full">
+        <div className="block w-full md:w-3/4 md:pr-1 h-full flex flex-col">
           <ChartComponent metric={selectedMetric} />
         </div>
 
@@ -138,16 +138,18 @@ const TokenInfo: React.FC<TokenInfoProps> = ({
         </div>
 
         {/* SwappingFrame - Mobile */}
-        <div className="block md:hidden fixed bottom-16 left-0 right-0 z-50">
-          <SwappingFrame
-            availableTranches={availableTranches}
-            trancheSupply={trancheSupply}
-            trancheSold={trancheSold}
-            priceDifference={priceDifference || []}
-            contractAddress={contractAddress as `0x${string}`}
-            onBuyTranche={onBuyTranche}
-            onRef={onRef}
-          />
+        <div className="block md:hidden fixed inset-x-0 bottom-16 max-h-[50vh] z-40 px-2">
+          <div className="h-full overflow-y-auto bg-content-light dark:bg-content-dark rounded-lg">
+            <SwappingFrame
+              availableTranches={availableTranches}
+              trancheSupply={trancheSupply}
+              trancheSold={trancheSold}
+              priceDifference={priceDifference || []}
+              contractAddress={contractAddress as `0x${string}`}
+              onBuyTranche={onBuyTranche}
+              onRef={onRef}
+            />
+          </div>
         </div>
       </div>
     </div>
