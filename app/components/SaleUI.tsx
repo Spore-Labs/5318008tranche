@@ -174,13 +174,15 @@ const SaleUI: React.FC<SaleUIProps> = ({ contractAddress, selectedTrancheIndex, 
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <div className="p-6 bg-content-light dark:bg-content-dark">
+      <div className="p-6 bg-background-light dark:bg-background-dark rounded-xl">
         <h2 className="text-xl xs:text-xl sm:text-2xl font-bold mb-4 text-center text-text-light dark:text-text-dark">
           Buy Tranche {trancheIndex}
         </h2>
         <div className="flex flex-col space-y-4">
-          <div className="bg-background-light dark:bg-background-dark p-3 rounded-lg border border-primary-light dark:border-primary-dark">
+          <div className="bg-primary-light dark:bg-primary-dark p-3 rounded-lg border border-primary-light dark:border-primary-dark">
             <p className="text-sm mb-1 text-text-light dark:text-text-dark">Current Price: {priceDisplay()}</p>
+          </div>
+          <div className="bg-content-light dark:bg-content-dark p-3 rounded-lg border border-primary-light dark:border-primary-dark">
             <p className="text-sm mb-1 text-text-light dark:text-text-dark">Estimated Tokens: {estimatedTokens.toFixed(2)}</p>
             <p className="text-sm text-text-light dark:text-text-dark">% of Total Supply: {percentageOfSupply.toFixed(4)}%</p>
           </div>
