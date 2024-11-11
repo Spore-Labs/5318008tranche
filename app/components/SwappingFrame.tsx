@@ -28,11 +28,12 @@ export const SwappingFrame: React.FC<SwappingFrameProps> = ({
 
   return (
     <div className={`
-      h-auto md:h-full flex flex-col 
+      flex-1 flex flex-col
       bg-background-light dark:bg-background-dark 
       border border-primary-light dark:border-primary-dark 
       rounded-lg p-2 text-xs overflow-y-auto space-y-2 
       transition-all duration-300 ease-in-out
+      mt-4
     `}>
       <div className="flex flex-col space-y-2">
         {availableTranches.map((isAvailable, index) => (

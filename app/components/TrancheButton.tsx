@@ -68,7 +68,7 @@ const TrancheButton: React.FC<TrancheButtonProps> = ({
           {isSelected ? 'Selected' : isSoldOut ? 'Sold Out' : isAvailable ? 'Available' : 'Not Available'}
         </span>
       </div>
-      {!isSoldOut && (
+      {(!isSoldOut && (isAvailable || window.innerWidth >= 768)) && (
         <div className="flex justify-between text-xs xs:text-xs sm:text-sm">
           <span>
             {isAvailable ? `Unlocked at ${formattedFDV} FDV` : `Locked until ${formattedFDV} FDV`}
@@ -81,7 +81,11 @@ const TrancheButton: React.FC<TrancheButtonProps> = ({
 
   return (
     <button 
-      className={`${buttonClass} ${(!isAvailable || isSoldOut) ? 'opacity-50' : ''}`} 
+      className={`
+        ${buttonClass} 
+        ${(!isAvailable || isSoldOut) ? 'opacity-50' : ''} 
+        ${isSoldOut ? 'hidden md:block' : ''}
+      `} 
       onClick={onBuy}
       disabled={!isAvailable || isSoldOut}
     >

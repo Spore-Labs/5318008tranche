@@ -174,32 +174,46 @@ const SaleUI: React.FC<SaleUIProps> = ({ contractAddress, selectedTrancheIndex, 
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <div className="p-6">
-        <h2 className="text-xl xs:text-xl sm:text-2xl font-bold mb-4 text-center">Buy Tranche {trancheIndex}</h2>
+      <div className="p-6 bg-content-light dark:bg-content-dark">
+        <h2 className="text-xl xs:text-xl sm:text-2xl font-bold mb-4 text-center text-text-light dark:text-text-dark">
+          Buy Tranche {trancheIndex}
+        </h2>
         <div className="flex flex-col space-y-4">
-          <div className="bg-background-light dark:bg-background-dark p-3 rounded-lg">
-            <p className="text-sm mb-1">Current Price: {priceDisplay()}</p>
-            <p className="text-sm mb-1">Estimated Tokens: {estimatedTokens.toFixed(2)}</p>
-            <p className="text-sm">% of Total Supply: {percentageOfSupply.toFixed(4)}%</p>
+          <div className="bg-background-light dark:bg-background-dark p-3 rounded-lg border border-primary-light dark:border-primary-dark">
+            <p className="text-sm mb-1 text-text-light dark:text-text-dark">Current Price: {priceDisplay()}</p>
+            <p className="text-sm mb-1 text-text-light dark:text-text-dark">Estimated Tokens: {estimatedTokens.toFixed(2)}</p>
+            <p className="text-sm text-text-light dark:text-text-dark">% of Total Supply: {percentageOfSupply.toFixed(4)}%</p>
           </div>
           
           <div>
-            <label className="block text-xs xs:text-sm font-medium mb-1">Amount (ETH)</label>
+            <label className="block text-xs xs:text-sm font-medium mb-1 text-text-light dark:text-text-dark">
+              Amount (ETH)
+            </label>
             <input
               type="text"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2"
+              className="w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 
+                bg-background-light dark:bg-background-dark 
+                text-text-light dark:text-text-dark
+                border-primary-light dark:border-primary-dark
+                focus:ring-secondary-light dark:focus:ring-secondary-dark"
             />
           </div>
           
           <div>
-            <label className="block text-xs xs:text-sm font-medium mb-1">Slippage Tolerance (%)</label>
+            <label className="block text-xs xs:text-sm font-medium mb-1 text-text-light dark:text-text-dark">
+              Slippage Tolerance (%)
+            </label>
             <input
               type="number"
               value={slippage}
               onChange={(e) => setSlippage(Number(e.target.value))}
-              className="w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2"
+              className="w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2
+                bg-background-light dark:bg-background-dark 
+                text-text-light dark:text-text-dark
+                border-primary-light dark:border-primary-dark
+                focus:ring-secondary-light dark:focus:ring-secondary-dark"
             />
           </div>
 
