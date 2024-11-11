@@ -27,12 +27,7 @@ const TrancheButton: React.FC<TrancheButtonProps> = ({
   const soldPercentage = supply > BigInt(0) ? Number((sold * BigInt(10000)) / supply) / 100 : 0;
   const isSoldOut = sold >= supply && supply > BigInt(0);
 
-  // Get necessary contract data
-  const { data: initialSupply } = useReadContract({
-    address: contractAddress,
-    abi: contractABI,
-    functionName: 'scaledTotalSupply',
-  });
+  const INITIAL_SUPPLY = BigInt(1_000_000) * BigInt(10 ** 18); // 1,000,000 * 1e18
 
   const { data: initialPricePerSupply } = useReadContract({
     address: contractAddress,
@@ -54,11 +49,11 @@ const TrancheButton: React.FC<TrancheButtonProps> = ({
   });
 
   // Calculate unlock FDV
-  const unlockFDV = initialSupply && initialPricePerSupply && priceMultiple && ethPrice
-    ? (Number(initialSupply) / 1e36) * 
-      (Number(initialPricePerSupply) / 1e36) * 
+  const unlockFDV = initialPricePerSupply && priceMultiple && ethPrice
+    ? (Number(INITIAL_SUPPLY) / 1e18) * 
+      (Number(initialPricePerSupply) / 1e18) * 
       Number(priceMultiple) * 
-      (Number(ethPrice) / 1e35)
+      (Number(ethPrice) / 1e18)
     : null;
 
   const formattedFDV = unlockFDV ? formatLargeNumber(unlockFDV) : '$0';
