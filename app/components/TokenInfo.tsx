@@ -120,7 +120,7 @@ const TokenInfo: React.FC<TokenInfoProps> = ({
       {/* Main Content Area */}
       <div className="flex-grow flex flex-col md:flex-row mt-1 overflow-hidden bg-content-light dark:bg-content-dark rounded-lg relative">
         {/* Chart Section */}
-        <div className="w-full md:w-3/4 md:pr-1 h-full">
+        <div className="hidden md:block w-full md:w-3/4 md:pr-1 h-full">
           <ChartComponent metric={selectedMetric} />
         </div>
 
