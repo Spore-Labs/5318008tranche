@@ -66,15 +66,28 @@ const TokenInfo: React.FC<TokenInfoProps> = ({
   }, [])
 
   useEffect(() => {
-    if (isConnected && contractAddress) {
+    if (contractAddress) {
       fetchTokenData()
       const intervalId = setInterval(fetchTokenData, 60000) // Fetch every minute
       return () => clearInterval(intervalId)
     }
-  }, [isConnected, contractAddress, fetchTokenData])
+  }, [contractAddress, fetchTokenData])
 
-  if (error) return <div>Error loading token information: {error}</div>
-  if (!tokenData) return <div>Loading token information...</div>
+  if (error) return (
+    <div className="h-full flex items-center justify-center text-text-light dark:text-text-dark">
+      Error loading token information: {error}
+    </div>
+  )
+  if (!tokenData) return (
+    <div className="h-full flex items-center justify-center text-text-light dark:text-text-dark">
+      Loading token information...
+    </div>
+  )
+  if (!isConnected) return (
+    <div className="h-full flex items-center justify-center text-text-light dark:text-text-dark">
+      Please connect your wallet to view token information
+    </div>
+  )
 
   const formatNumber = (num: number) => num.toLocaleString(undefined, { maximumFractionDigits: 0 })
 
