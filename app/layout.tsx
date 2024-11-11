@@ -37,8 +37,8 @@ export default async function RootLayout({
   const cookies = headersList.get('cookie')
 
   return (
-    <html lang="en" className="h-full" suppressHydrationWarning>
-      <body className={`${inter.className} h-full flex flex-col`} suppressHydrationWarning>
+    <html lang="en" className="h-full bg-content-light dark:bg-content-dark" suppressHydrationWarning>
+      <body className={`${inter.className} h-full flex flex-col bg-content-light dark:bg-content-dark`} suppressHydrationWarning>
         <Providers>
           <ContextProvider cookies={cookies}>
             <Header />

@@ -8,6 +8,7 @@ import { SwappingFrame } from './SwappingFrame'
 import { useReadContract } from 'wagmi'
 import contractABI from '../../contractABI.json'
 import { ChartProps } from '../types'
+import { useHeaderHeight } from '../../hooks/useHeaderHeight'; // Adjust the path as needed
 
 const TokenInfo: React.FC<TokenInfoProps> = ({
   isConnected,
@@ -22,6 +23,7 @@ const TokenInfo: React.FC<TokenInfoProps> = ({
   const [tokenData, setTokenData] = useState<TokenData | null>(null)
   const [selectedMetric, setSelectedMetric] = useState<ChartProps['metric']>('marketCap_close')
   const [error, setError] = useState<string | null>(null)
+  const headerHeight = useHeaderHeight();
 
   const { data: tranchesData } = useReadContract({
     address: contractAddress as `0x${string}`,
@@ -105,7 +107,10 @@ const TokenInfo: React.FC<TokenInfoProps> = ({
   return (
     <div className="flex flex-col h-full bg-content-light dark:bg-content-dark text-white">
       {/* Metrics Bar */}
-      <div className="text-xs grid grid-cols-5 gap-1 bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark p-1 shadow-soft border border-primary-light dark:border-primary-dark rounded-lg">
+      <div
+        className="text-xs grid grid-cols-5 gap-1 bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark p-1 shadow-soft border border-primary-light dark:border-primary-dark rounded-lg"
+        style={{ marginTop: '8px' }}
+      >
         {metrics.map(({ key, label, value }) => (
           <MetricButton
             key={key}
